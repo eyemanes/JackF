@@ -30,12 +30,36 @@ const AuthButton = () => {
       console.log('Twitter object values:', user?.twitter ? Object.values(user.twitter) : 'No twitter object');
       console.log('Twitter object entries:', user?.twitter ? Object.entries(user.twitter) : 'No twitter object');
       
+      // Log the full Twitter object structure for debugging
+      if (user?.twitter) {
+        console.log('Full Twitter object:', JSON.stringify(user.twitter, null, 2));
+        console.log('Twitter object type:', typeof user.twitter);
+        console.log('Twitter object constructor:', user.twitter.constructor.name);
+        
+        // Log each property individually
+        Object.entries(user.twitter).forEach(([key, value]) => {
+          console.log(`Twitter.${key}:`, value, `(type: ${typeof value})`);
+        });
+      }
+      
       // Try different possible property names for Twitter ID
-      const twitterId = user?.twitter?.id || 
-                       user?.twitter?.userId || 
-                       user?.twitter?.twitterId ||
-                       user?.twitter?.sub ||
-                       user?.twitter?.user_id;
+      let twitterId = user?.twitter?.id || 
+                     user?.twitter?.userId || 
+                     user?.twitter?.twitterId ||
+                     user?.twitter?.sub ||
+                     user?.twitter?.user_id;
+      
+      // If still no ID found, try to extract from any property that looks like an ID
+      if (!twitterId && user?.twitter) {
+        console.log('No standard ID found, searching for ID-like values...');
+        for (const [key, value] of Object.entries(user.twitter)) {
+          if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 5) {
+            console.log(`Found potential ID in ${key}: ${value}`);
+            twitterId = value;
+            break;
+          }
+        }
+      }
       
       const twitterUsername = user?.twitter?.username || 
                              user?.twitter?.screen_name ||
