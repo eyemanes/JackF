@@ -1,0 +1,287 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #000000;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(0, 100, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0, 150, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(0, 200, 255, 0.05) 0%, transparent 50%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(0, 102, 255, 0.15) 0%, transparent 25%),
+    radial-gradient(circle at 85% 85%, rgba(0, 153, 255, 0.15) 0%, transparent 25%),
+    radial-gradient(circle at 50% 50%, rgba(0, 204, 255, 0.1) 0%, transparent 30%);
+  animation: squid-gradient-shift 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Squid Loading Animation */
+@keyframes squid-glow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 5px rgba(0, 102, 255, 0.3));
+  }
+  50% { 
+    filter: drop-shadow(0 0 15px rgba(0, 153, 255, 0.6));
+  }
+}
+
+.squid-loader {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+}
+
+.squid-loader::before {
+  content: '';
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: radial-gradient(circle at 30% 30%, #00ccff, #0066ff);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: squid-fade 2s ease-in-out infinite, squid-glow 2s ease-in-out infinite;
+  box-shadow: 
+    0 0 0 6px rgba(0, 204, 255, 0.3),
+    0 0 0 12px rgba(0, 102, 255, 0.2);
+}
+
+.squid-loader::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  top: 15px;
+  left: 18px;
+  box-shadow: 18px 0 0 #ffffff;
+  animation: squid-fade 2s ease-in-out infinite;
+}
+
+@keyframes squid-fade {
+  0% { 
+    opacity: 0;
+  }
+  100% { 
+    opacity: 1;
+  }
+}
+
+/* Loading animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Pulse animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom gradient text - Blue theme */
+.gradient-text {
+  background: linear-gradient(135deg, #0066ff, #0099ff, #00ccff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Squid-inspired gradient */
+.squid-gradient {
+  background: linear-gradient(135deg, #001122, #003366, #0066ff, #0099ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Table hover effects */
+table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Button hover effects */
+button:hover {
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Card hover effects */
+.card:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Recharts tooltip styling */
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.recharts-tooltip-content {
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  border-radius: 8px !important;
+  color: #f9fafb !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Squid-inspired animations */
+@keyframes tentacle-wave {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(5deg) scale(1.05); }
+  50% { transform: rotate(0deg) scale(1.1); }
+  75% { transform: rotate(-5deg) scale(1.05); }
+}
+
+@keyframes ink-cloud {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 0.3; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes deep-sea-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 102, 255, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(0, 153, 255, 0.6), 0 0 60px rgba(0, 204, 255, 0.3); }
+}
+
+@keyframes squid-gradient-shift {
+  0% { 
+    background-image: 
+      radial-gradient(circle at 15% 15%, rgba(0, 102, 255, 0.15) 0%, transparent 25%),
+      radial-gradient(circle at 85% 85%, rgba(0, 153, 255, 0.15) 0%, transparent 25%),
+      radial-gradient(circle at 50% 50%, rgba(0, 204, 255, 0.1) 0%, transparent 30%);
+  }
+  25% { 
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(0, 153, 255, 0.2) 0%, transparent 30%),
+      radial-gradient(circle at 75% 75%, rgba(0, 204, 255, 0.15) 0%, transparent 25%),
+      radial-gradient(circle at 60% 40%, rgba(0, 102, 255, 0.1) 0%, transparent 35%);
+  }
+  50% { 
+    background-image: 
+      radial-gradient(circle at 35% 35%, rgba(0, 204, 255, 0.15) 0%, transparent 25%),
+      radial-gradient(circle at 65% 65%, rgba(0, 102, 255, 0.2) 0%, transparent 30%),
+      radial-gradient(circle at 40% 60%, rgba(0, 153, 255, 0.1) 0%, transparent 35%);
+  }
+  75% { 
+    background-image: 
+      radial-gradient(circle at 45% 45%, rgba(0, 102, 255, 0.2) 0%, transparent 30%),
+      radial-gradient(circle at 55% 55%, rgba(0, 153, 255, 0.15) 0%, transparent 25%),
+      radial-gradient(circle at 70% 30%, rgba(0, 204, 255, 0.1) 0%, transparent 35%);
+  }
+  100% { 
+    background-image: 
+      radial-gradient(circle at 15% 15%, rgba(0, 102, 255, 0.15) 0%, transparent 25%),
+      radial-gradient(circle at 85% 85%, rgba(0, 153, 255, 0.15) 0%, transparent 25%),
+      radial-gradient(circle at 50% 50%, rgba(0, 204, 255, 0.1) 0%, transparent 30%);
+  }
+}
+
+.squid-tentacle {
+  animation: tentacle-wave 3s ease-in-out infinite;
+}
+
+.ink-cloud {
+  animation: ink-cloud 2s ease-out infinite;
+}
+
+.deep-sea-glow {
+  animation: deep-sea-glow 4s ease-in-out infinite;
+}
+
+/* Blue-themed buttons */
+.btn-blue {
+  background: linear-gradient(135deg, #0066ff, #0099ff);
+  border: 1px solid rgba(0, 102, 255, 0.3);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.btn-blue:hover {
+  background: linear-gradient(135deg, #0052cc, #007acc);
+  box-shadow: 0 0 20px rgba(0, 102, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Squid-themed cards */
+.squid-card {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 102, 255, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.squid-card:hover {
+  border-color: rgba(0, 153, 255, 0.4);
+  box-shadow: 0 0 30px rgba(0, 102, 255, 0.2);
+}
