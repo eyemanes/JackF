@@ -26,8 +26,28 @@ const AuthButton = () => {
     try {
       console.log('Generating linking code for user:', user?.twitter);
       
+      // Validate required user data
+      if (!user?.twitter?.id) {
+        console.error('Missing Twitter ID:', user?.twitter);
+        alert('Error: Twitter ID not found. Please reconnect your Twitter account.');
+        return;
+      }
+      
+      if (!user?.twitter?.username) {
+        console.error('Missing Twitter username:', user?.twitter);
+        alert('Error: Twitter username not found. Please reconnect your Twitter account.');
+        return;
+      }
+      
       // Generate a 6-digit code
       const code = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Validate the generated code
+      if (!code || code.length !== 6) {
+        console.error('Invalid linking code generated:', code);
+        alert('Error: Failed to generate valid linking code. Please try again.');
+        return;
+      }
       
       // Store the code in Firebase with user's Twitter info
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
@@ -35,12 +55,24 @@ const AuthButton = () => {
       const requestData = {
         twitterId: user.twitter.id,
         twitterUsername: user.twitter.username,
-        twitterName: user.twitter.name,
+        twitterName: user.twitter.name || user.twitter.username,
         linkingCode: code
       };
       
+      // Final validation before sending
+      if (!requestData.twitterId || !requestData.linkingCode) {
+        console.error('Invalid request data:', requestData);
+        alert('Error: Invalid request data. Please try again.');
+        return;
+      }
+      
       console.log('Sending request to:', `${API_BASE_URL}/generate-linking-code`);
       console.log('Request data:', requestData);
+      console.log('Full request data details:', JSON.stringify(requestData, null, 2));
+      console.log('User twitter data:', user?.twitter);
+      console.log('User twitter ID:', user?.twitter?.id);
+      console.log('User twitter username:', user?.twitter?.username);
+      console.log('User twitter name:', user?.twitter?.name);
       
       const response = await fetch(`${API_BASE_URL}/generate-linking-code`, {
         method: 'POST',
@@ -53,12 +85,15 @@ const AuthButton = () => {
       console.log('Response status:', response.status);
       const responseData = await response.json();
       console.log('Response data:', responseData);
+      console.log('Full response data details:', JSON.stringify(responseData, null, 2));
 
       if (response.ok) {
         setLinkingCode(code);
         console.log('Linking code generated successfully:', code);
       } else {
         console.error('Failed to generate linking code:', responseData);
+        console.error('Error details:', responseData.error);
+        console.error('Full error response:', JSON.stringify(responseData, null, 2));
       }
     } catch (error) {
       console.error('Error generating linking code:', error);
