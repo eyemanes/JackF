@@ -90,14 +90,44 @@ const Profile = () => {
     }
   };
 
+  // 🔧 FIXED: Enhanced Twitter ID extraction (same as AuthButton)
   const getTwitterId = () => {
-    return user?.twitter?.id || 
-           user?.twitter?.userId || 
-           user?.twitter?.twitterId ||
-           user?.twitter?.sub ||
-           user?.twitter?.user_id ||
-           Object.entries(user?.twitter || {})
-             .find(([key, value]) => typeof value === 'string' && /^\d+$/.test(value) && value.length > 5)?.[1];
+    if (!user?.twitter) {
+      console.log('❌ No Twitter object in user');
+      return null;
+    }
+
+    console.log('🔍 Full Twitter object for Profile:', JSON.stringify(user.twitter, null, 2));
+    
+    // Try all possible ID fields with priority order (Privy uses 'subject')
+    const idFields = [
+      'subject',    // Privy typically uses 'subject' for Twitter ID
+      'id', 
+      'userId', 
+      'twitterId',
+      'sub',
+      'user_id'
+    ];
+
+    for (const field of idFields) {
+      const value = user.twitter[field];
+      if (value && typeof value === 'string' && /^\d+$/.test(value) && value.length > 5) {
+        console.log(`✅ Profile - Found Twitter ID in field '${field}': ${value}`);
+        return value;
+      }
+    }
+
+    // If no standard field works, search all properties
+    console.log('🔍 Profile - Searching all Twitter properties for ID-like values...');
+    for (const [key, value] of Object.entries(user.twitter)) {
+      if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 10) {
+        console.log(`🔍 Profile - Found potential ID in '${key}': ${value}`);
+        return value;
+      }
+    }
+
+    console.log('❌ Profile - No Twitter ID found in any field');
+    return null;
   };
 
   const fetchUserData = async () => {
@@ -106,7 +136,8 @@ const Profile = () => {
       
       const twitterId = getTwitterId();
       if (!twitterId) {
-        console.log('No Twitter ID found for fetching user data');
+        console.log('❌ Profile - No Twitter ID found for fetching user data');
+        console.log('🛠️ Profile - Available Twitter object:', user?.twitter);
         return;
       }
 

@@ -28,70 +28,66 @@ const AuthButton = () => {
     }
   }, [authenticated, user]);
 
+  // 🔧 FIXED: Enhanced Twitter ID extraction
+  const getTwitterId = () => {
+    if (!user?.twitter) {
+      console.log('❌ No Twitter object in user');
+      return null;
+    }
+
+    console.log('🔍 Full Twitter object:', JSON.stringify(user.twitter, null, 2));
+    
+    // Try all possible ID fields with priority order
+    const idFields = [
+      'subject',    // Privy typically uses 'subject' for Twitter ID
+      'id', 
+      'userId', 
+      'twitterId',
+      'sub',
+      'user_id'
+    ];
+
+    for (const field of idFields) {
+      const value = user.twitter[field];
+      if (value && typeof value === 'string' && /^\d+$/.test(value) && value.length > 5) {
+        console.log(`✅ Found Twitter ID in field '${field}': ${value}`);
+        return value;
+      }
+    }
+
+    // If no standard field works, search all properties
+    console.log('🔍 Searching all Twitter properties for ID-like values...');
+    for (const [key, value] of Object.entries(user.twitter)) {
+      if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 10) {
+        console.log(`🔍 Found potential ID in '${key}': ${value}`);
+        return value;
+      }
+    }
+
+    console.log('❌ No Twitter ID found in any field');
+    return null;
+  };
+
   const generateLinkingCode = async () => {
     setIsGeneratingCode(true);
     try {
-      console.log('Generating linking code for user:', user?.twitter);
-      console.log('Full user object:', user);
-      console.log('Twitter object keys:', user?.twitter ? Object.keys(user.twitter) : 'No twitter object');
-      console.log('Twitter object values:', user?.twitter ? Object.values(user.twitter) : 'No twitter object');
-      console.log('Twitter object entries:', user?.twitter ? Object.entries(user.twitter) : 'No twitter object');
-      
-      // Log the full Twitter object structure for debugging
-      if (user?.twitter) {
-        console.log('Full Twitter object:', JSON.stringify(user.twitter, null, 2));
-        console.log('Twitter object type:', typeof user.twitter);
-        console.log('Twitter object constructor:', user.twitter.constructor.name);
-        
-        // Log each property individually
-        Object.entries(user.twitter).forEach(([key, value]) => {
-          console.log(`Twitter.${key}:`, value, `(type: ${typeof value})`);
-        });
-      }
-      
-      // Try different possible property names for Twitter ID
-      let twitterId = user?.twitter?.id || 
-                     user?.twitter?.userId || 
-                     user?.twitter?.twitterId ||
-                     user?.twitter?.sub ||
-                     user?.twitter?.user_id;
-      
-      // If still no ID found, try to extract from any property that looks like an ID
-      if (!twitterId && user?.twitter) {
-        console.log('No standard ID found, searching for ID-like values...');
-        for (const [key, value] of Object.entries(user.twitter)) {
-          if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 5) {
-            console.log(`Found potential ID in ${key}: ${value}`);
-            twitterId = value;
-            break;
-          }
-        }
-      }
-      
-      const twitterUsername = user?.twitter?.username || 
-                             user?.twitter?.screen_name ||
-                             user?.twitter?.handle;
-      
-      const twitterName = user?.twitter?.name || 
-                         user?.twitter?.display_name ||
-                         user?.twitter?.full_name;
-      
-      console.log('Extracted Twitter data:', {
-        twitterId,
-        twitterUsername,
-        twitterName
-      });
-      
-      // Validate required user data
+      const twitterId = getTwitterId();
       if (!twitterId) {
-        console.error('Missing Twitter ID:', user?.twitter);
-        console.error('Available Twitter properties:', user?.twitter ? Object.keys(user.twitter) : 'None');
         alert('Error: Twitter ID not found. Please reconnect your Twitter account.');
         return;
       }
+
+      const twitterUsername = user?.twitter?.username || user?.twitter?.screen_name;
+      const twitterName = user?.twitter?.name || user?.twitter?.display_name;
+      
+      console.log('🔧 Extracted Twitter data:', {
+        twitterId,
+        twitterUsername,
+        twitterName,
+        fullTwitterObject: user?.twitter
+      });
       
       if (!twitterUsername) {
-        console.error('Missing Twitter username:', user?.twitter);
         alert('Error: Twitter username not found. Please reconnect your Twitter account.');
         return;
       }
@@ -188,56 +184,41 @@ const AuthButton = () => {
     }
   };
 
+  // 🔧 FIXED: Better linking status check with user-profile endpoint
   const checkTelegramLinkStatus = async () => {
     setIsCheckingLink(true);
     try {
-      // Extract Twitter ID
-      let twitterId = user?.twitter?.id || 
-                     user?.twitter?.userId || 
-                     user?.twitter?.twitterId ||
-                     user?.twitter?.sub ||
-                     user?.twitter?.user_id;
-      
-      // If still no ID found, try to extract from any property that looks like an ID
-      if (!twitterId && user?.twitter) {
-        for (const [key, value] of Object.entries(user.twitter)) {
-          if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 5) {
-            twitterId = value;
-            break;
-          }
-        }
-      }
-
+      const twitterId = getTwitterId();
       if (!twitterId) {
-        console.log('No Twitter ID found for checking Telegram link status');
+        console.log('❌ No Twitter ID found for checking Telegram link status');
         setTelegramLinked(false);
         return false;
       }
 
+      console.log(`🔍 Checking link status for Twitter ID: ${twitterId}`);
+      
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
       
-      // Check if this Twitter account is linked to any Telegram account
-      const response = await fetch(`${API_BASE_URL}/check-telegram-link/${twitterId}`);
+      // Use the more reliable user-profile endpoint
+      const response = await fetch(`${API_BASE_URL}/user-profile/${twitterId}`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('🔍 Telegram link check response:', data);
-        if (data.success && data.linked) {
-          console.log('✅ Telegram account is linked:', data);
+        console.log('📋 Profile endpoint response:', data);
+        
+        if (data.success && data.data.isLinked) {
           setTelegramLinked(true);
-          setLinkingCode(null); // Clear any existing linking code since account is already linked
-          console.log('🔧 Set telegramLinked to true and cleared linkingCode');
+          setLinkingCode(null); // Clear any existing linking code
+          console.log('✅ Account IS linked via profile endpoint');
           return true;
         } else {
-          console.log('❌ Telegram account is not linked:', data);
           setTelegramLinked(false);
-          console.log('🔧 Set telegramLinked to false');
+          console.log('❌ Account NOT linked via profile endpoint');
           return false;
         }
       } else {
-        console.log('❌ Could not check Telegram link status, response not ok');
+        console.error('Profile endpoint failed:', response.status);
         setTelegramLinked(false);
-        console.log('🔧 Set telegramLinked to false (response not ok)');
         return false;
       }
     } catch (error) {
