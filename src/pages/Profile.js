@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { 
   User, 
@@ -18,7 +18,9 @@ import {
   Calendar,
   Trophy,
   Star,
-  Activity
+  Activity,
+  Upload,
+  X
 } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
@@ -33,60 +35,105 @@ const Profile = () => {
   const [isEditingBanner, setIsEditingBanner] = useState(false);
   const [telegramLinked, setTelegramLinked] = useState(false);
   const [isCheckingLink, setIsCheckingLink] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Get Twitter profile picture URL
+  const getTwitterProfilePicture = () => {
+    // Try different possible fields for profile picture
+    const profilePic = user?.twitter?.picture || 
+                      user?.twitter?.profile_image_url || 
+                      user?.twitter?.profileImageUrl ||
+                      user?.twitter?.avatar_url;
+    
+    if (profilePic) {
+      // Replace _normal with _400x400 for higher quality
+      return profilePic.replace('_normal', '_400x400');
+    }
+    
+    // If no profile picture found, return null to show default
+    return null;
+  };
 
   useEffect(() => {
     if (authenticated && user?.twitter) {
       fetchUserData();
       checkTelegramLinkStatus();
+      loadUserBanner();
     }
   }, [authenticated, user]);
+
+  const loadUserBanner = async () => {
+    try {
+      const twitterId = getTwitterId();
+      if (!twitterId) return;
+
+      const response = await fetch(`${API_BASE_URL}/user-banner/${twitterId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.bannerUrl) {
+          setBannerUrl(data.bannerUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user banner:', error);
+    }
+  };
+
+  const getTwitterId = () => {
+    return user?.twitter?.id || 
+           user?.twitter?.userId || 
+           user?.twitter?.twitterId ||
+           user?.twitter?.sub ||
+           user?.twitter?.user_id ||
+           Object.entries(user?.twitter || {})
+             .find(([key, value]) => typeof value === 'string' && /^\d+$/.test(value) && value.length > 5)?.[1];
+  };
 
   const fetchUserData = async () => {
     try {
       setLoading(true);
       
-      // Extract Twitter ID
-      let twitterId = user?.twitter?.id || 
-                     user?.twitter?.userId || 
-                     user?.twitter?.twitterId ||
-                     user?.twitter?.sub ||
-                     user?.twitter?.user_id;
-      
-      // If still no ID found, try to extract from any property that looks like an ID
-      if (!twitterId && user?.twitter) {
-        for (const [key, value] of Object.entries(user.twitter)) {
-          if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 5) {
-            twitterId = value;
-            break;
-          }
-        }
-      }
-
+      const twitterId = getTwitterId();
       if (!twitterId) {
         console.log('No Twitter ID found for fetching user data');
         return;
       }
 
-      // Fetch user's calls (we'll need to create this endpoint)
-      const callsResponse = await fetch(`${API_BASE_URL}/user-calls/${twitterId}`);
-      if (callsResponse.ok) {
-        const callsData = await callsResponse.json();
-        if (callsData.success) {
-          setUserCalls(callsData.data || []);
+      console.log(`🔍 Fetching profile data for Twitter ID: ${twitterId}`);
+      const profileResponse = await fetch(`${API_BASE_URL}/user-profile/${twitterId}`);
+      
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        console.log('📊 Profile data received:', profileData);
+        
+        if (profileData.success) {
+          const data = profileData.data;
+          
+          setUserCalls(data.recentCalls || []);
+          
+          setUserStats({
+            totalCalls: data.totalCalls || 0,
+            successfulCalls: data.successfulCalls || 0,
+            totalScore: data.totalScore || 0,
+            winRate: data.winRate || 0,
+            bestCall: data.bestCall || 0,
+            avgPnL: data.recentCalls?.length > 0 ? 
+              data.recentCalls.reduce((sum, call) => sum + (call.pnlPercent || 0), 0) / data.recentCalls.length : 0
+          });
+          
+          setTelegramLinked(data.isLinked || false);
+          
+          console.log('✅ Profile stats updated:', {
+            totalCalls: data.totalCalls,
+            winRate: data.winRate,
+            totalScore: data.totalScore,
+            isLinked: data.isLinked
+          });
         }
+      } else {
+        console.error('Failed to fetch profile data:', profileResponse.status);
       }
-
-      // Calculate user statistics
-      const calls = userCalls;
-      const stats = {
-        totalCalls: calls.length,
-        successfulCalls: calls.filter(call => (call.performance?.pnlPercent || 0) > 0).length,
-        totalScore: calls.reduce((sum, call) => sum + (call.performance?.score || 0), 0),
-        avgPnL: calls.length > 0 ? calls.reduce((sum, call) => sum + (call.performance?.pnlPercent || 0), 0) / calls.length : 0,
-        bestCall: Math.max(...calls.map(call => call.performance?.pnlPercent || 0), 0),
-        winRate: calls.length > 0 ? (calls.filter(call => (call.performance?.pnlPercent || 0) > 0).length / calls.length) * 100 : 0
-      };
-      setUserStats(stats);
 
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -98,23 +145,7 @@ const Profile = () => {
   const checkTelegramLinkStatus = async () => {
     setIsCheckingLink(true);
     try {
-      // Extract Twitter ID
-      let twitterId = user?.twitter?.id || 
-                     user?.twitter?.userId || 
-                     user?.twitter?.twitterId ||
-                     user?.twitter?.sub ||
-                     user?.twitter?.user_id;
-      
-      // If still no ID found, try to extract from any property that looks like an ID
-      if (!twitterId && user?.twitter) {
-        for (const [key, value] of Object.entries(user.twitter)) {
-          if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 5) {
-            twitterId = value;
-            break;
-          }
-        }
-      }
-
+      const twitterId = getTwitterId();
       if (!twitterId) {
         console.log('No Twitter ID found for checking Telegram link status');
         return;
@@ -124,11 +155,7 @@ const Profile = () => {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.linked) {
-          setTelegramLinked(true);
-        } else {
-          setTelegramLinked(false);
-        }
+        setTelegramLinked(data.success && data.linked);
       } else {
         setTelegramLinked(false);
       }
@@ -215,10 +242,88 @@ const Profile = () => {
       .slice(0, 10);
   };
 
-  const handleBannerSave = () => {
-    // TODO: Save banner URL to backend
-    console.log('Saving banner URL:', bannerUrl);
-    setIsEditingBanner(false);
+  // Handle file upload for banner
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    setIsUploadingBanner(true);
+
+    try {
+      const twitterId = getTwitterId();
+      if (!twitterId) {
+        throw new Error('Twitter ID not found');
+      }
+
+      // Create form data
+      const formData = new FormData();
+      formData.append('banner', file);
+      formData.append('twitterId', twitterId);
+
+      // Upload to backend
+      const response = await fetch(`${API_BASE_URL}/upload-banner`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setBannerUrl(data.bannerUrl);
+          setIsEditingBanner(false);
+          console.log('✅ Banner uploaded successfully:', data.bannerUrl);
+        } else {
+          throw new Error(data.error || 'Upload failed');
+        }
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading banner:', error);
+      alert('Failed to upload banner. Please try again.');
+    } finally {
+      setIsUploadingBanner(false);
+    }
+  };
+
+  const handleBannerSave = async () => {
+    try {
+      const twitterId = getTwitterId();
+      if (!twitterId) return;
+
+      const response = await fetch(`${API_BASE_URL}/save-banner-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          twitterId,
+          bannerUrl
+        })
+      });
+
+      if (response.ok) {
+        setIsEditingBanner(false);
+        console.log('✅ Banner URL saved successfully');
+      } else {
+        throw new Error('Failed to save banner URL');
+      }
+    } catch (error) {
+      console.error('Error saving banner URL:', error);
+      alert('Failed to save banner URL');
+    }
   };
 
   if (!ready) {
@@ -250,6 +355,8 @@ const Profile = () => {
       </div>
     );
   }
+
+  const twitterProfilePic = getTwitterProfilePicture();
 
   return (
     <div className="space-y-6">
@@ -289,8 +396,17 @@ const Profile = () => {
                   className="bg-gray-800 text-white px-3 py-1 rounded text-sm w-64"
                 />
                 <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingBanner}
+                  className="p-1 text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+                  title="Upload Image"
+                >
+                  <Upload className="w-4 h-4" />
+                </button>
+                <button
                   onClick={handleBannerSave}
-                  className="p-1 text-green-400 hover:text-green-300 transition-colors"
+                  disabled={isUploadingBanner}
+                  className="p-1 text-green-400 hover:text-green-300 transition-colors disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                 </button>
@@ -298,7 +414,7 @@ const Profile = () => {
                   onClick={() => setIsEditingBanner(false)}
                   className="p-1 text-gray-400 hover:text-white transition-colors"
                 >
-                  <Check className="w-4 h-4" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             ) : (
@@ -310,13 +426,44 @@ const Profile = () => {
               </button>
             )}
           </div>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+
+          {/* Upload progress indicator */}
+          {isUploadingBanner && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <div className="text-white text-lg">Uploading banner...</div>
+            </div>
+          )}
         </div>
 
         {/* Profile Info */}
         <div className="p-6">
           <div className="flex items-center space-x-4 mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center -mt-10 border-4 border-gray-900">
-              <User className="w-10 h-10 text-white" />
+            {/* Profile Picture - USE ACTUAL TWITTER PFP */}
+            <div className="w-20 h-20 rounded-full -mt-10 border-4 border-gray-900 overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600">
+              {twitterProfilePic ? (
+                <img
+                  src={twitterProfilePic}
+                  alt="Profile Picture"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to default icon if image fails to load
+                    e.target.style.display = 'none';
+                    e.target.parentNode.querySelector('.fallback-icon').style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className={`fallback-icon w-full h-full flex items-center justify-center ${twitterProfilePic ? 'hidden' : 'flex'}`}>
+                <User className="w-10 h-10 text-white" />
+              </div>
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-white">
