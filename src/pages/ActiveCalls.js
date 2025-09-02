@@ -104,12 +104,12 @@ function ActiveCalls() {
         
         // Show success message
         if (data.data.refreshedCount > 0) {
-          setRefreshMessage(`✅ Updated ${data.data.refreshedCount} tokens with fresh market data!`);
-          // Clear message after 3 seconds
-          setTimeout(() => setRefreshMessage(''), 3000);
+          setRefreshMessage(`✅ Updated market data for all tokens, calculated PnL/Score for ${data.data.refreshedCount} tokens!`);
+          // Clear message after 4 seconds (longer since it's more complex)
+          setTimeout(() => setRefreshMessage(''), 4000);
         } else {
-          setRefreshMessage('ℹ️ No tokens needed updating');
-          setTimeout(() => setRefreshMessage(''), 2000);
+          setRefreshMessage('ℹ️ Market data updated, no PnL/Score calculations needed');
+          setTimeout(() => setRefreshMessage(''), 3000);
         }
         
         // Now fetch the updated calls data
