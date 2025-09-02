@@ -24,6 +24,7 @@ function ActiveCalls() {
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshingTokens, setRefreshingTokens] = useState(new Set());
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('createdAt');
@@ -64,18 +65,35 @@ function ActiveCalls() {
   };
 
   const handleRefreshToken = async (contractAddress) => {
+    // Add to refreshing set
+    setRefreshingTokens(prev => new Set(prev).add(contractAddress));
+    
     try {
+      console.log(`Refreshing token data for: ${contractAddress}`);
       const response = await fetch(
         `${API_BASE_URL}/refresh/${contractAddress}`,
         { method: 'POST' }
       );
+      
+      console.log('Refresh response status:', response.status);
       const data = await response.json();
+      console.log('Refresh response data:', data);
       
       if (data.success) {
+        console.log('Refresh successful, fetching updated calls...');
         await fetchActiveCalls();
+      } else {
+        console.error('Refresh failed:', data.error);
       }
     } catch (error) {
       console.error('Error refreshing token:', error);
+    } finally {
+      // Remove from refreshing set
+      setRefreshingTokens(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(contractAddress);
+        return newSet;
+      });
     }
   };
 
@@ -254,10 +272,11 @@ function ActiveCalls() {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleRefreshToken(call.contractAddress)}
-                        className="p-1 text-gray-400 hover:text-white transition-colors"
+                        disabled={refreshingTokens.has(call.contractAddress)}
+                        className="p-1 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
                         title="Refresh token data"
                       >
-                        <RefreshCw className="w-4 h-4" />
+                        <RefreshCw className={`w-4 h-4 ${refreshingTokens.has(call.contractAddress) ? 'animate-spin' : ''}`} />
                       </button>
                       <Link
                         to={`/token/${call.contractAddress}`}

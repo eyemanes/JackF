@@ -44,7 +44,8 @@ function TokenDetail() {
       
       if (data.success) {
         setTokenData(data.data);
-        setCalls(data.data.calls);
+        // For now, create a single call array since we're getting one call
+        setCalls([data.data]);
       }
     } catch (error) {
       console.error('Error fetching token data:', error);
@@ -69,9 +70,22 @@ function TokenDetail() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await fetch(`${API_BASE_URL}/refresh/${contractAddress}`, { method: 'POST' });
-      await fetchTokenData();
-      await fetchSnapshots();
+      console.log(`Refreshing token data for: ${contractAddress}`);
+      console.log(`API URL: ${API_BASE_URL}/refresh/${contractAddress}`);
+      
+      const response = await fetch(`${API_BASE_URL}/refresh/${contractAddress}`, { method: 'POST' });
+      console.log('Refresh response status:', response.status);
+      
+      const data = await response.json();
+      console.log('Refresh response data:', data);
+      
+      if (data.success) {
+        console.log('Refresh successful, fetching updated data...');
+        await fetchTokenData();
+        await fetchSnapshots();
+      } else {
+        console.error('Refresh failed:', data.error);
+      }
     } catch (error) {
       console.error('Error refreshing data:', error);
     } finally {
@@ -264,45 +278,45 @@ function TokenDetail() {
                   </td>
                   <td className="p-4">
                     <span className="text-gray-300">
-                      {call.user.displayName}
+                      {call.user?.displayName || 'Anonymous'}
                     </span>
                   </td>
                   <td className="p-4">
                     <span className="text-gray-300 font-mono">
-                      ${call.prices.entry?.toFixed(8) || '0'}
+                      ${call.prices?.entry?.toFixed(8) || '0'}
                     </span>
                   </td>
                   <td className="p-4">
                     <span className="text-white font-mono">
-                      ${call.prices.current?.toFixed(8) || '0'}
+                      ${call.prices?.current?.toFixed(8) || '0'}
                     </span>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center space-x-2">
-                      {call.performance.pnlPercent >= 0 ? (
+                      {(call.performance?.pnlPercent || 0) >= 0 ? (
                         <TrendingUp className="w-4 h-4 text-green-400" />
                       ) : (
                         <TrendingDown className="w-4 h-4 text-red-400" />
                       )}
                       <span
                         className={`font-medium ${
-                          call.performance.pnlPercent >= 0
+                          (call.performance?.pnlPercent || 0) >= 0
                             ? 'text-green-400'
                             : 'text-red-400'
                         }`}
                       >
-                        {formatPnLDisplay(call.performance.pnlPercent)}
+                        {formatPnLDisplay(call.performance?.pnlPercent || 0)}
                       </span>
                     </div>
                   </td>
                   <td className="p-4">
                     <span className="text-blue-400 font-medium">
-                      {call.performance.score.toFixed(1)}
+                      {(call.performance?.score || 0).toFixed(1)}
                     </span>
                   </td>
                   <td className="p-4">
                     <span className="text-gray-400 text-sm">
-                      {formatTime(call.timestamps.createdAt)}
+                      {formatTime(call.timestamps?.createdAt || call.createdAt)}
                     </span>
                   </td>
                 </tr>
