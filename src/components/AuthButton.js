@@ -11,6 +11,7 @@ const AuthButton = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
 
   // Generate linking code and fetch profile picture when user authenticates
   useEffect(() => {
@@ -21,6 +22,7 @@ const AuthButton = () => {
   }, [authenticated, user]);
 
   const generateLinkingCode = async () => {
+    setIsGeneratingCode(true);
     try {
       console.log('Generating linking code for user:', user?.twitter);
       
@@ -60,6 +62,8 @@ const AuthButton = () => {
       }
     } catch (error) {
       console.error('Error generating linking code:', error);
+    } finally {
+      setIsGeneratingCode(false);
     }
   };
 
@@ -161,7 +165,7 @@ const AuthButton = () => {
 
         {/* Profile Dropdown Menu */}
         {showProfileMenu && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800/95 backdrop-blur-sm border border-gray-600/30 rounded-lg shadow-xl z-[99999] profile-dropdown">
+          <div className="absolute right-0 bottom-full mb-2 w-64 bg-gray-800/95 backdrop-blur-sm border border-gray-600/30 rounded-lg shadow-xl z-[99999] profile-dropdown">
             <div className="p-4">
               {/* User Info */}
               <div className="flex items-center justify-between mb-4">
@@ -345,10 +349,14 @@ const AuthButton = () => {
                         </button>
                       </div>
                       <button
-                        onClick={generateLinkingCode}
-                        className="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors text-sm"
+                        onClick={() => {
+                          console.log('Generate New Code button clicked');
+                          generateLinkingCode();
+                        }}
+                        disabled={isGeneratingCode}
+                        className="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors text-sm disabled:opacity-50"
                       >
-                        Generate New Code
+                        {isGeneratingCode ? 'Generating...' : 'Generate New Code'}
                       </button>
                     </div>
                   ) : (
@@ -357,10 +365,14 @@ const AuthButton = () => {
                         Generate a linking code to connect your Telegram account
                       </p>
                       <button
-                        onClick={generateLinkingCode}
-                        className="px-4 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg transition-colors"
+                        onClick={() => {
+                          console.log('Generate Linking Code button clicked');
+                          generateLinkingCode();
+                        }}
+                        disabled={isGeneratingCode}
+                        className="px-4 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg transition-colors disabled:opacity-50"
                       >
-                        Generate Linking Code
+                        {isGeneratingCode ? 'Generating...' : 'Generate Linking Code'}
                       </button>
                     </div>
                   )}
