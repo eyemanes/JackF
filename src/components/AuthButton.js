@@ -20,26 +20,41 @@ const AuthButton = () => {
 
   const generateLinkingCode = async () => {
     try {
+      console.log('Generating linking code for user:', user?.twitter);
+      
       // Generate a 6-digit code
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       
       // Store the code in Firebase with user's Twitter info
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
+      
+      const requestData = {
+        twitterId: user.twitter.id,
+        twitterUsername: user.twitter.username,
+        twitterName: user.twitter.name,
+        linkingCode: code
+      };
+      
+      console.log('Sending request to:', `${API_BASE_URL}/generate-linking-code`);
+      console.log('Request data:', requestData);
+      
       const response = await fetch(`${API_BASE_URL}/generate-linking-code`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          twitterId: user.twitter.id,
-          twitterUsername: user.twitter.username,
-          twitterName: user.twitter.name,
-          linkingCode: code
-        }),
+        body: JSON.stringify(requestData),
       });
+
+      console.log('Response status:', response.status);
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
 
       if (response.ok) {
         setLinkingCode(code);
+        console.log('Linking code generated successfully:', code);
+      } else {
+        console.error('Failed to generate linking code:', responseData);
       }
     } catch (error) {
       console.error('Error generating linking code:', error);
@@ -48,9 +63,25 @@ const AuthButton = () => {
 
   const fetchProfilePicture = async () => {
     try {
-      // Use Twitter's profile image URL from the user data
-      if (user?.twitter?.profileImageUrl) {
-        setProfilePicture(user.twitter.profileImageUrl);
+      console.log('Twitter user data:', user?.twitter);
+      
+      // Try different possible profile image URL fields
+      const profileImageUrl = user?.twitter?.profileImageUrl || 
+                             user?.twitter?.profile_image_url ||
+                             user?.twitter?.profileImage ||
+                             user?.twitter?.avatar_url;
+      
+      if (profileImageUrl) {
+        console.log('Found profile image URL:', profileImageUrl);
+        setProfilePicture(profileImageUrl);
+      } else {
+        console.log('No profile image URL found in user data');
+        // Try to construct Twitter profile image URL from username
+        if (user?.twitter?.username) {
+          const constructedUrl = `https://unavatar.io/twitter/${user.twitter.username}`;
+          console.log('Trying constructed URL:', constructedUrl);
+          setProfilePicture(constructedUrl);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile picture:', error);
@@ -63,6 +94,12 @@ const AuthButton = () => {
       setCodeCopied(true);
       setTimeout(() => setCodeCopied(false), 2000);
     }
+  };
+
+  const handleEditProfile = () => {
+    console.log('Edit Profile clicked');
+    // For now, just show an alert. You can expand this later
+    alert('Edit Profile functionality coming soon! This will allow you to:\n\n• Update your profile information\n• Connect additional accounts\n• Manage your preferences\n\nFor now, you can use the Telegram connection below to link your accounts.');
   };
 
   if (!ready) {
@@ -135,7 +172,7 @@ const AuthButton = () => {
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
-                    // Handle edit profile action
+                    handleEditProfile();
                   }}
                   className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-700/50 rounded-lg transition-colors"
                 >
