@@ -18,9 +18,13 @@ const AuthButton = () => {
   // Generate linking code and fetch profile picture when user authenticates
   useEffect(() => {
     if (authenticated && user?.twitter) {
-      generateLinkingCode();
+      // First check if account is already linked, then decide whether to generate code
+      checkTelegramLinkStatus().then((isLinked) => {
+        if (!isLinked) {
+          generateLinkingCode();
+        }
+      });
       fetchProfilePicture();
-      checkTelegramLinkStatus();
     }
   }, [authenticated, user]);
 
@@ -143,6 +147,7 @@ const AuthButton = () => {
 
       if (response.ok) {
         setLinkingCode(code);
+        console.log('🔧 Set linkingCode to:', code);
         console.log('Linking code generated successfully:', code);
       } else {
         console.error('Failed to generate linking code:', responseData);
@@ -205,7 +210,8 @@ const AuthButton = () => {
 
       if (!twitterId) {
         console.log('No Twitter ID found for checking Telegram link status');
-        return;
+        setTelegramLinked(false);
+        return false;
       }
 
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
@@ -215,20 +221,29 @@ const AuthButton = () => {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('🔍 Telegram link check response:', data);
         if (data.success && data.linked) {
-          console.log('Telegram account is linked:', data);
+          console.log('✅ Telegram account is linked:', data);
           setTelegramLinked(true);
+          setLinkingCode(null); // Clear any existing linking code since account is already linked
+          console.log('🔧 Set telegramLinked to true and cleared linkingCode');
+          return true;
         } else {
-          console.log('Telegram account is not linked');
+          console.log('❌ Telegram account is not linked:', data);
           setTelegramLinked(false);
+          console.log('🔧 Set telegramLinked to false');
+          return false;
         }
       } else {
-        console.log('Could not check Telegram link status');
+        console.log('❌ Could not check Telegram link status, response not ok');
         setTelegramLinked(false);
+        console.log('🔧 Set telegramLinked to false (response not ok)');
+        return false;
       }
     } catch (error) {
       console.error('Error checking Telegram link status:', error);
       setTelegramLinked(false);
+      return false;
     } finally {
       setIsCheckingLink(false);
     }
@@ -480,7 +495,10 @@ const AuthButton = () => {
                     )}
                   </div>
                   
-                  {telegramLinked ? (
+                  {(() => {
+                    console.log('🎨 UI Render - telegramLinked:', telegramLinked, 'linkingCode:', linkingCode);
+                    return telegramLinked;
+                  })() ? (
                     <div className="space-y-3">
                       <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-4 py-3">
                         <div className="flex items-center space-x-2">
