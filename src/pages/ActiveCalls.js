@@ -29,6 +29,7 @@ function ActiveCalls() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [refreshMessage, setRefreshMessage] = useState('');
 
   useEffect(() => {
     fetchActiveCalls();
@@ -44,7 +45,11 @@ function ActiveCalls() {
       
       if (data.success) {
         console.log('Calls data:', data.data);
-        setCalls(data.data || []);
+        // Ensure calls are sorted by creation date (newest first) as fallback
+        const sortedCalls = (data.data || []).sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setCalls(sortedCalls);
         setTotalPages(1); // No pagination for now
       } else {
         console.error('API returned error:', data.error);
@@ -60,8 +65,53 @@ function ActiveCalls() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchActiveCalls();
-    setRefreshing(false);
+    try {
+      console.log('🔄 Starting refresh of all token data...');
+      
+      // Call the new refresh-all endpoint to update all token data
+      const response = await fetch(`${API_BASE_URL}/refresh-all`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      console.log('Refresh all response status:', response.status);
+      const data = await response.json();
+      console.log('Refresh all response data:', data);
+      
+      if (data.success) {
+        console.log(`✅ Successfully refreshed ${data.data.refreshedCount} tokens`);
+        console.log(`📊 Results: ${data.data.refreshedCount} successful, ${data.data.errorCount} failed`);
+        
+        // Show success message
+        if (data.data.refreshedCount > 0) {
+          setRefreshMessage(`✅ Updated ${data.data.refreshedCount} tokens with fresh market data!`);
+          // Clear message after 3 seconds
+          setTimeout(() => setRefreshMessage(''), 3000);
+        } else {
+          setRefreshMessage('ℹ️ No tokens needed updating');
+          setTimeout(() => setRefreshMessage(''), 2000);
+        }
+        
+        // Now fetch the updated calls data
+        await fetchActiveCalls();
+      } else {
+        console.error('❌ Refresh all failed:', data.error);
+        setRefreshMessage('❌ Refresh failed. Please try again.');
+        setTimeout(() => setRefreshMessage(''), 3000);
+        // Still fetch the current data even if refresh failed
+        await fetchActiveCalls();
+      }
+    } catch (error) {
+      console.error('❌ Error refreshing all tokens:', error);
+      setRefreshMessage('❌ Network error. Please check your connection.');
+      setTimeout(() => setRefreshMessage(''), 3000);
+      // Still fetch the current data even if refresh failed
+      await fetchActiveCalls();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleRefreshToken = async (contractAddress) => {
@@ -146,14 +196,27 @@ function ActiveCalls() {
           <h1 className="text-3xl font-bold text-white">🐙 Active Token Calls</h1>
           <p className="text-gray-400 mt-1">Track live performance of recent Solana token calls</p>
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="btn-blue flex items-center space-x-2 px-4 py-2 rounded-lg disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          <span>Refresh</span>
-        </button>
+        <div className="flex flex-col items-end space-y-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="btn-blue flex items-center space-x-2 px-4 py-2 rounded-lg disabled:opacity-50 transition-all duration-200 hover:scale-105"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>{refreshing ? 'Refreshing All...' : 'Refresh All'}</span>
+          </button>
+          {refreshMessage && (
+            <div className={`text-sm px-3 py-1 rounded-lg transition-all duration-300 ${
+              refreshMessage.includes('✅') 
+                ? 'bg-green-600/20 text-green-400 border border-green-500/30' 
+                : refreshMessage.includes('❌')
+                ? 'bg-red-600/20 text-red-400 border border-red-500/30'
+                : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+            }`}>
+              {refreshMessage}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Sort Controls */}
