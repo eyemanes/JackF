@@ -8,6 +8,7 @@ import Profile from './pages/Profile';
 import AuthButton from './components/AuthButton';
 import { privyConfig } from './privy-config';
 
+// API configuration
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
 
 function App() {
