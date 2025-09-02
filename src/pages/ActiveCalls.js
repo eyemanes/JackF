@@ -304,10 +304,23 @@ function ActiveCalls() {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center space-x-2">
-                      <User className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-300 text-sm">
-                        {call.user?.displayName || 'Anonymous'}
-                      </span>
+                      {call.user?.isLinked ? (
+                        <div className="flex items-center space-x-1">
+                          <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">T</span>
+                          </div>
+                          <span className="text-blue-400 text-sm font-medium">
+                            {call.user?.displayName || 'Anonymous'}
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-300 text-sm">
+                            {call.user?.displayName || 'Anonymous'}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </td>
                   <td className="p-4">

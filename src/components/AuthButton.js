@@ -352,31 +352,6 @@ const AuthButton = () => {
 
               {/* Menu Items */}
               <div className="space-y-2">
-                {/* Telegram Status */}
-                <div className="px-3 py-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <MessageCircle className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-300 text-sm">Telegram Status:</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {telegramLinked ? (
-                        <span className="text-green-400 text-sm font-medium">✅ Linked</span>
-                      ) : (
-                        <span className="text-yellow-400 text-sm font-medium">⏳ Not Linked</span>
-                      )}
-                      <button
-                        onClick={checkTelegramLinkStatus}
-                        disabled={isCheckingLink}
-                        className="p-1 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
-                        title="Refresh Telegram status"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isCheckingLink ? 'animate-spin' : ''}`} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Edit Profile */}
                 <button
                   onClick={() => {
