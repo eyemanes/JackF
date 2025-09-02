@@ -27,7 +27,7 @@ const Sidebar = ({ stats }) => {
       {/* Logo */}
       <div className="p-6 border-b border-gray-700/50">
         <Link to="/" className="text-2xl font-bold text-white">
-          <span className="squid-gradient">🐙</span> <span className="gradient-text">Jack</span> <span className="text-white">Ace of Scans</span>
+          <span className="squid-gradient">🐙</span> <span className="gradient-text">Jack</span> <span className="text-white">of all Scans</span>
         </Link>
       </div>
 
@@ -127,7 +127,7 @@ function App() {
             {/* Footer */}
             <footer className="bg-black/50 backdrop-blur-md border-t border-blue-500/20 p-6">
               <div className="text-gray-400 text-sm text-center">
-                <span>🐙 Jack Ace of Scans - Track your calls, climb the leaderboard</span>
+                <span>🐙 Jack of all Scans - Track your calls, climb the leaderboard</span>
               </div>
             </footer>
           </div>
