@@ -21,8 +21,11 @@ function App() {
 
   const fetchOverviewStats = async () => {
     try {
+      console.log('Fetching stats from:', `${API_BASE_URL}/health`);
       const response = await fetch(`${API_BASE_URL}/health`);
+      console.log('Stats response status:', response.status);
       const data = await response.json();
+      console.log('Stats data received:', data);
       setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
