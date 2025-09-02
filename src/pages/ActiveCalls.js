@@ -187,7 +187,7 @@ function ActiveCalls() {
               <tr>
                 <th className="text-left p-4 text-gray-300 font-medium">Token</th>
                 <th className="text-left p-4 text-gray-300 font-medium">Caller</th>
-                <th className="text-left p-4 text-gray-300 font-medium">Entry Price</th>
+                <th className="text-left p-4 text-gray-300 font-medium">Call at: MCap</th>
                 <th className="text-left p-4 text-gray-300 font-medium">Current Price</th>
                 <th className="text-left p-4 text-gray-300 font-medium">PnL</th>
                 <th className="text-left p-4 text-gray-300 font-medium">Score</th>
@@ -224,7 +224,7 @@ function ActiveCalls() {
                   </td>
                   <td className="p-4">
                     <span className="text-gray-300">
-                      ${call.prices?.entry?.toFixed(8) || '0'}
+                      ${formatNumber(call.prices?.entryMarketCap || 0)}
                     </span>
                   </td>
                   <td className="p-4">
