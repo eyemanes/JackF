@@ -1,7 +1,7 @@
 export const privyConfig = {
   appId: 'cmf1tadv200dji20bkp26e2xr',
   config: {
-    // Login methods - only Twitter
+    // Login methods - ONLY Twitter, no other options
     loginMethods: ['twitter'],
     
     // Appearance
@@ -16,11 +16,51 @@ export const privyConfig = {
       createOnLogin: 'off',
     },
     
-    // Social login configuration - only Twitter
+    // Social login configuration - ONLY Twitter
     socialProviders: {
       twitter: {
         clientId: process.env.REACT_APP_TWITTER_CLIENT_ID,
       },
+    },
+    
+    // Explicitly disable other login methods
+    mfa: {
+      noPromptOnMfaRequired: false,
+    },
+    
+    // Disable email/password login
+    email: {
+      enabled: false,
+    },
+    
+    // Disable phone login
+    phone: {
+      enabled: false,
+    },
+    
+    // Disable wallet login
+    wallet: {
+      enabled: false,
+    },
+    
+    // Disable Telegram login
+    telegram: {
+      enabled: false,
+    },
+    
+    // Disable Discord login
+    discord: {
+      enabled: false,
+    },
+    
+    // Disable Google login
+    google: {
+      enabled: false,
+    },
+    
+    // Disable GitHub login
+    github: {
+      enabled: false,
     },
     
     // Legal

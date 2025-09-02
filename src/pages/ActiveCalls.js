@@ -51,12 +51,14 @@ function ActiveCalls() {
         // Log some sample data to see if it's updated
         if (data.data && data.data.length > 0) {
           console.log('Sample call data:', {
-            tokenName: data.data[0].tokenName,
-            currentPrice: data.data[0].currentPrice,
-            currentMarketCap: data.data[0].currentMarketCap,
-            pnlPercent: data.data[0].pnlPercent,
-            score: data.data[0].score,
-            updatedAt: data.data[0].updatedAt
+            tokenName: data.data[0].token?.name,
+            tokenSymbol: data.data[0].token?.symbol,
+            currentPrice: data.data[0].prices?.current,
+            currentMarketCap: data.data[0].prices?.currentMarketCap,
+            pnlPercent: data.data[0].performance?.pnlPercent,
+            score: data.data[0].performance?.score,
+            updatedAt: data.data[0].updatedAt,
+            fullCallData: data.data[0] // Log full structure for debugging
           });
         }
         
