@@ -116,7 +116,25 @@ const Profile = () => {
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         console.log('📊 Profile data received:', profileData);
-      console.log('📋 Raw profile response:', JSON.stringify(profileData, null, 2));
+        console.log('📋 Raw profile response:', JSON.stringify(profileData, null, 2));
+        
+        // 🔍 DEBUG: Check if linking is working
+        if (profileData.success) {
+          console.log('🔍 Backend linking check:', {
+            twitterId,
+            isLinked: profileData.data?.isLinked,
+            totalCalls: profileData.data?.totalCalls,
+            linkedData: profileData.data?.linkedData
+          });
+          
+          if (!profileData.data?.isLinked) {
+            console.log('❌ Backend says NOT linked - possible issues:');
+            console.log('1. telegramUsername missing in linking code');
+            console.log('2. isUsed flag not set to true');
+            console.log('3. twitterId mismatch');
+            console.log('Check server console for detailed linking debug logs!');
+          }
+        }
         
         if (profileData.success) {
           const data = profileData.data;
