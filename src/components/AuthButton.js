@@ -109,6 +109,7 @@ const AuthButton = () => {
         twitterId: twitterId,
         twitterUsername: twitterUsername,
         twitterName: twitterName || twitterUsername,
+        profilePictureUrl: user?.twitter?.profilePictureUrl || null,
         linkingCode: code
       };
       

@@ -40,7 +40,13 @@ const Profile = () => {
 
   // Get Twitter profile picture URL
   const getTwitterProfilePicture = () => {
-    // Try different possible fields for profile picture
+    // First try the actual profilePictureUrl from Twitter
+    if (user?.twitter?.profilePictureUrl) {
+      // Replace _normal with _400x400 for higher quality
+      return user.twitter.profilePictureUrl.replace('_normal', '_400x400');
+    }
+    
+    // Try other possible fields for profile picture
     const profilePic = user?.twitter?.picture || 
                       user?.twitter?.profile_image_url || 
                       user?.twitter?.profileImageUrl ||
@@ -51,7 +57,11 @@ const Profile = () => {
       return profilePic.replace('_normal', '_400x400');
     }
     
-    // If no profile picture found, return null to show default
+    // Fallback to constructed URL
+    if (user?.twitter?.username) {
+      return `https://unavatar.io/twitter/${user.twitter.username}`;
+    }
+    
     return null;
   };
 
@@ -106,6 +116,7 @@ const Profile = () => {
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         console.log('📊 Profile data received:', profileData);
+      console.log('📋 Raw profile response:', JSON.stringify(profileData, null, 2));
         
         if (profileData.success) {
           const data = profileData.data;
@@ -148,15 +159,29 @@ const Profile = () => {
       const twitterId = getTwitterId();
       if (!twitterId) {
         console.log('No Twitter ID found for checking Telegram link status');
+        setTelegramLinked(false);
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/check-telegram-link/${twitterId}`);
+      console.log(`🔍 Checking link status for Twitter ID: ${twitterId}`);
+      
+      // Use the user-profile endpoint instead of check-telegram-link
+      // because it has the proper linking logic
+      const response = await fetch(`${API_BASE_URL}/user-profile/${twitterId}`);
       
       if (response.ok) {
         const data = await response.json();
-        setTelegramLinked(data.success && data.linked);
+        console.log('📋 Profile endpoint response:', data);
+        
+        if (data.success && data.data.isLinked) {
+          setTelegramLinked(true);
+          console.log('✅ Account IS linked via profile endpoint');
+        } else {
+          setTelegramLinked(false);
+          console.log('❌ Account NOT linked via profile endpoint');
+        }
       } else {
+        console.error('Profile endpoint failed:', response.status);
         setTelegramLinked(false);
       }
     } catch (error) {

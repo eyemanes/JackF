@@ -41,7 +41,9 @@ function ActiveCalls() {
         );
         setCalls(sortedCalls);
         setLastUpdated(new Date());
-        console.log(`✅ Loaded ${sortedCalls.length} active calls`);
+        console.log('Active calls showing eyeman93 calls:', calls.length);
+      console.log('Sample call user info:', calls[0]?.user);
+      console.log('Twitter info in calls:', calls[0]?.user?.twitterInfo);
       } else {
         console.error('API returned error:', data.error);
         setCalls([]);
@@ -264,8 +266,22 @@ function ActiveCalls() {
                     {/* Caller */}
                     <td className="p-6">
                       <div className="flex items-center space-x-3">
+                        {/* Profile Picture - Twitter or fallback */}
                         <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-400/30 flex-shrink-0">
-                          <div className="w-full h-full flex items-center justify-center">
+                          {isLinked && call.user?.twitterProfilePic ? (
+                            <img
+                              src={call.user.twitterProfilePic}
+                              alt={`@${call.user.twitterUsername}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.parentNode.querySelector('.fallback-icon').style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`fallback-icon w-full h-full flex items-center justify-center ${
+                            isLinked && call.user?.twitterProfilePic ? 'hidden' : 'flex'
+                          }`}>
                             {isLinked ? (
                               <Twitter className="w-5 h-5 text-blue-400" />
                             ) : (
@@ -274,21 +290,27 @@ function ActiveCalls() {
                           </div>
                         </div>
                         
+                        {/* User Info - Clickable if linked */}
                         <div className="min-w-0">
                           {isLinked && twitterInfo ? (
-                            <div>
+                            <a 
+                              href={`https://twitter.com/${twitterInfo.twitterUsername}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block group hover:bg-blue-500/10 rounded-lg p-1 -m-1 transition-colors"
+                            >
                               <div className="flex items-center space-x-2">
-                                <span className="text-blue-300 font-medium truncate">
+                                <span className="text-blue-300 font-medium truncate group-hover:text-blue-200">
                                   @{twitterInfo.twitterUsername}
                                 </span>
-                                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                                <ExternalLink className="w-3 h-3 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                               </div>
                               {twitterInfo.twitterName && (
-                                <div className="text-gray-500 text-sm truncate">
+                                <div className="text-gray-500 text-sm truncate group-hover:text-gray-400">
                                   {twitterInfo.twitterName}
                                 </div>
                               )}
-                            </div>
+                            </a>
                           ) : (
                             <div className="text-gray-300 font-medium truncate">
                               {call.user?.displayName || call.user?.username || 'Anonymous'}
