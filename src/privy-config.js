@@ -1,8 +1,8 @@
 export const privyConfig = {
   appId: 'cmf1tadv200dji20bkp26e2xr',
   config: {
-    // Login methods
-    loginMethods: ['twitter', 'telegram'],
+    // Login methods - only Twitter
+    loginMethods: ['twitter'],
     
     // Appearance
     appearance: {
@@ -11,18 +11,15 @@ export const privyConfig = {
       logo: 'https://your-logo-url.com/logo.png', // Optional: add your logo
     },
     
-    // Embedded wallets
+    // No embedded wallets
     embeddedWallets: {
-      createOnLogin: 'users-without-wallets',
+      createOnLogin: 'off',
     },
     
-    // Social login configuration
+    // Social login configuration - only Twitter
     socialProviders: {
       twitter: {
         clientId: process.env.REACT_APP_TWITTER_CLIENT_ID,
-      },
-      telegram: {
-        botUsername: process.env.REACT_APP_TELEGRAM_BOT_USERNAME,
       },
     },
     
