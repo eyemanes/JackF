@@ -25,15 +25,41 @@ const AuthButton = () => {
     setIsGeneratingCode(true);
     try {
       console.log('Generating linking code for user:', user?.twitter);
+      console.log('Full user object:', user);
+      console.log('Twitter object keys:', user?.twitter ? Object.keys(user.twitter) : 'No twitter object');
+      console.log('Twitter object values:', user?.twitter ? Object.values(user.twitter) : 'No twitter object');
+      console.log('Twitter object entries:', user?.twitter ? Object.entries(user.twitter) : 'No twitter object');
+      
+      // Try different possible property names for Twitter ID
+      const twitterId = user?.twitter?.id || 
+                       user?.twitter?.userId || 
+                       user?.twitter?.twitterId ||
+                       user?.twitter?.sub ||
+                       user?.twitter?.user_id;
+      
+      const twitterUsername = user?.twitter?.username || 
+                             user?.twitter?.screen_name ||
+                             user?.twitter?.handle;
+      
+      const twitterName = user?.twitter?.name || 
+                         user?.twitter?.display_name ||
+                         user?.twitter?.full_name;
+      
+      console.log('Extracted Twitter data:', {
+        twitterId,
+        twitterUsername,
+        twitterName
+      });
       
       // Validate required user data
-      if (!user?.twitter?.id) {
+      if (!twitterId) {
         console.error('Missing Twitter ID:', user?.twitter);
+        console.error('Available Twitter properties:', user?.twitter ? Object.keys(user.twitter) : 'None');
         alert('Error: Twitter ID not found. Please reconnect your Twitter account.');
         return;
       }
       
-      if (!user?.twitter?.username) {
+      if (!twitterUsername) {
         console.error('Missing Twitter username:', user?.twitter);
         alert('Error: Twitter username not found. Please reconnect your Twitter account.');
         return;
@@ -53,9 +79,9 @@ const AuthButton = () => {
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
       
       const requestData = {
-        twitterId: user.twitter.id,
-        twitterUsername: user.twitter.username,
-        twitterName: user.twitter.name || user.twitter.username,
+        twitterId: twitterId,
+        twitterUsername: twitterUsername,
+        twitterName: twitterName || twitterUsername,
         linkingCode: code
       };
       

@@ -30,6 +30,7 @@ function ActiveCalls() {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [refreshMessage, setRefreshMessage] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     fetchActiveCalls();
@@ -45,12 +46,27 @@ function ActiveCalls() {
       
       if (data.success) {
         console.log('Calls data:', data.data);
+        console.log('Number of calls received:', data.data?.length || 0);
+        
+        // Log some sample data to see if it's updated
+        if (data.data && data.data.length > 0) {
+          console.log('Sample call data:', {
+            tokenName: data.data[0].tokenName,
+            currentPrice: data.data[0].currentPrice,
+            currentMarketCap: data.data[0].currentMarketCap,
+            pnlPercent: data.data[0].pnlPercent,
+            score: data.data[0].score,
+            updatedAt: data.data[0].updatedAt
+          });
+        }
+        
         // Ensure calls are sorted by creation date (newest first) as fallback
         const sortedCalls = (data.data || []).sort((a, b) => 
           new Date(b.createdAt) - new Date(a.createdAt)
         );
         setCalls(sortedCalls);
         setTotalPages(1); // No pagination for now
+        setLastUpdated(new Date());
       } else {
         console.error('API returned error:', data.error);
         setCalls([]);
@@ -95,7 +111,9 @@ function ActiveCalls() {
         }
         
         // Now fetch the updated calls data
+        console.log('🔄 Fetching updated calls data after refresh...');
         await fetchActiveCalls();
+        console.log('✅ Calls data refreshed, checking for updates...');
       } else {
         console.error('❌ Refresh all failed:', data.error);
         setRefreshMessage('❌ Refresh failed. Please try again.');
@@ -195,6 +213,11 @@ function ActiveCalls() {
         <div>
           <h1 className="text-3xl font-bold text-white">🐙 Active Token Calls</h1>
           <p className="text-gray-400 mt-1">Track live performance of recent Solana token calls</p>
+          {lastUpdated && (
+            <p className="text-gray-500 text-sm mt-1">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
         </div>
         <div className="flex flex-col items-end space-y-2">
           <button
