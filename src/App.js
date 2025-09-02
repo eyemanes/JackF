@@ -26,6 +26,8 @@ function App() {
       console.log('Stats response status:', response.status);
       const data = await response.json();
       console.log('Stats data received:', data);
+      console.log('Database type:', data.database);
+      console.log('Firebase stats:', data.stats);
       setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -98,9 +100,9 @@ function App() {
               <div className="text-gray-400 text-sm">
                 <span>🐙 Jack Ace of Scans - Track your calls, climb the leaderboard</span>
               </div>
-              {stats && (
+              {stats && stats.stats && (
                 <div className="text-gray-400 text-sm">
-                  <span>Uptime: {Math.floor(stats.uptime / 60)} minutes</span>
+                  <span>🔥 Firebase: {stats.stats.totalCalls} calls, {stats.stats.totalUsers} users</span>
                 </div>
               )}
             </div>
