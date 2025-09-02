@@ -161,7 +161,7 @@ const AuthButton = () => {
 
         {/* Profile Dropdown Menu */}
         {showProfileMenu && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800/95 backdrop-blur-sm border border-gray-600/30 rounded-lg shadow-xl z-[9999]">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800/95 backdrop-blur-sm border border-gray-600/30 rounded-lg shadow-xl z-[99999] profile-dropdown">
             <div className="p-4">
               {/* User Info */}
               <div className="flex items-center justify-between mb-4">
@@ -228,7 +228,7 @@ const AuthButton = () => {
         {/* Click outside to close menu */}
         {showProfileMenu && (
           <div
-            className="fixed inset-0 z-[9998]"
+            className="fixed inset-0 z-[99998] modal-overlay"
             onClick={() => setShowProfileMenu(false)}
           />
         )}
@@ -236,7 +236,7 @@ const AuthButton = () => {
         {/* Edit Profile Modal */}
         {showEditProfile && (
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10000]"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100000] profile-modal"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 setShowEditProfile(false);

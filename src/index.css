@@ -285,3 +285,16 @@ button:hover {
   border-color: rgba(0, 153, 255, 0.4);
   box-shadow: 0 0 30px rgba(0, 102, 255, 0.2);
 }
+
+/* Ensure modals and dropdowns appear above everything */
+.profile-dropdown {
+  z-index: 99999 !important;
+}
+
+.profile-modal {
+  z-index: 100000 !important;
+}
+
+.modal-overlay {
+  z-index: 99998 !important;
+}
