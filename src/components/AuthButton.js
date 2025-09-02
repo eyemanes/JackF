@@ -12,12 +12,15 @@ const AuthButton = () => {
   const [profilePicture, setProfilePicture] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [telegramLinked, setTelegramLinked] = useState(false);
+  const [isCheckingLink, setIsCheckingLink] = useState(false);
 
   // Generate linking code and fetch profile picture when user authenticates
   useEffect(() => {
     if (authenticated && user?.twitter) {
       generateLinkingCode();
       fetchProfilePicture();
+      checkTelegramLinkStatus();
     }
   }, [authenticated, user]);
 
@@ -179,6 +182,57 @@ const AuthButton = () => {
     }
   };
 
+  const checkTelegramLinkStatus = async () => {
+    setIsCheckingLink(true);
+    try {
+      // Extract Twitter ID
+      let twitterId = user?.twitter?.id || 
+                     user?.twitter?.userId || 
+                     user?.twitter?.twitterId ||
+                     user?.twitter?.sub ||
+                     user?.twitter?.user_id;
+      
+      // If still no ID found, try to extract from any property that looks like an ID
+      if (!twitterId && user?.twitter) {
+        for (const [key, value] of Object.entries(user.twitter)) {
+          if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 5) {
+            twitterId = value;
+            break;
+          }
+        }
+      }
+
+      if (!twitterId) {
+        console.log('No Twitter ID found for checking Telegram link status');
+        return;
+      }
+
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
+      
+      // Check if this Twitter account is linked to any Telegram account
+      const response = await fetch(`${API_BASE_URL}/check-telegram-link/${twitterId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.linked) {
+          console.log('Telegram account is linked:', data);
+          setTelegramLinked(true);
+        } else {
+          console.log('Telegram account is not linked');
+          setTelegramLinked(false);
+        }
+      } else {
+        console.log('Could not check Telegram link status');
+        setTelegramLinked(false);
+      }
+    } catch (error) {
+      console.error('Error checking Telegram link status:', error);
+      setTelegramLinked(false);
+    } finally {
+      setIsCheckingLink(false);
+    }
+  };
+
   const copyCode = async () => {
     if (linkingCode) {
       await navigator.clipboard.writeText(linkingCode);
@@ -198,6 +252,7 @@ const AuthButton = () => {
     try {
       await fetchProfilePicture();
       await generateLinkingCode();
+      await checkTelegramLinkStatus();
     } catch (error) {
       console.error('Error refreshing profile:', error);
     } finally {
@@ -275,18 +330,53 @@ const AuthButton = () => {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={handleRefreshProfile}
-                  disabled={isRefreshing}
-                  className="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
-                  title="Refresh profile"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                </button>
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={checkTelegramLinkStatus}
+                    disabled={isCheckingLink}
+                    className="p-2 text-gray-400 hover:text-green-400 transition-colors disabled:opacity-50"
+                    title="Check Telegram status"
+                  >
+                    <MessageCircle className={`w-4 h-4 ${isCheckingLink ? 'animate-pulse' : ''}`} />
+                  </button>
+                  <button
+                    onClick={handleRefreshProfile}
+                    disabled={isRefreshing}
+                    className="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                    title="Refresh profile"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
               </div>
 
               {/* Menu Items */}
               <div className="space-y-2">
+                {/* Telegram Status */}
+                <div className="px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <MessageCircle className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-300 text-sm">Telegram Status:</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {telegramLinked ? (
+                        <span className="text-green-400 text-sm font-medium">✅ Linked</span>
+                      ) : (
+                        <span className="text-yellow-400 text-sm font-medium">⏳ Not Linked</span>
+                      )}
+                      <button
+                        onClick={checkTelegramLinkStatus}
+                        disabled={isCheckingLink}
+                        className="p-1 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                        title="Refresh Telegram status"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isCheckingLink ? 'animate-spin' : ''}`} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Edit Profile */}
                 <button
                   onClick={() => {
@@ -409,12 +499,38 @@ const AuthButton = () => {
                   <div className="flex items-center space-x-2 mb-4">
                     <MessageCircle className="w-5 h-5 text-green-400" />
                     <h3 className="text-white font-medium">Connect Telegram</h3>
+                    {isCheckingLink && (
+                      <div className="squid-loader" style={{ width: '16px', height: '16px' }}></div>
+                    )}
                   </div>
                   
-                  {linkingCode ? (
+                  {telegramLinked ? (
+                    <div className="space-y-3">
+                      <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-4 py-3">
+                        <div className="flex items-center space-x-2">
+                          <Check className="w-5 h-5 text-green-400" />
+                          <div>
+                            <div className="text-green-400 font-medium">
+                              ✅ Telegram Account Linked!
+                            </div>
+                            <div className="text-green-300 text-sm">
+                              Your Twitter account is connected to Telegram
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={checkTelegramLinkStatus}
+                        disabled={isCheckingLink}
+                        className="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors text-sm disabled:opacity-50"
+                      >
+                        {isCheckingLink ? 'Checking...' : 'Refresh Status'}
+                      </button>
+                    </div>
+                  ) : linkingCode ? (
                     <div className="space-y-3">
                       <p className="text-gray-300 text-sm">
-                        Send this code to @JackBot to link your Telegram account:
+                        Send this code to @jackyscanbot to link your Telegram account:
                       </p>
                       <div className="flex items-center space-x-2 bg-green-600/20 border border-green-500/30 rounded-lg px-4 py-3">
                         <div className="flex-1">
@@ -433,32 +549,50 @@ const AuthButton = () => {
                           {codeCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                         </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          console.log('Generate New Code button clicked');
-                          generateLinkingCode();
-                        }}
-                        disabled={isGeneratingCode}
-                        className="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors text-sm disabled:opacity-50"
-                      >
-                        {isGeneratingCode ? 'Generating...' : 'Generate New Code'}
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            console.log('Generate New Code button clicked');
+                            generateLinkingCode();
+                          }}
+                          disabled={isGeneratingCode}
+                          className="flex-1 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors text-sm disabled:opacity-50"
+                        >
+                          {isGeneratingCode ? 'Generating...' : 'New Code'}
+                        </button>
+                        <button
+                          onClick={checkTelegramLinkStatus}
+                          disabled={isCheckingLink}
+                          className="flex-1 px-3 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg transition-colors text-sm disabled:opacity-50"
+                        >
+                          {isCheckingLink ? 'Checking...' : 'Check Status'}
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-4">
                       <p className="text-gray-400 text-sm mb-3">
                         Generate a linking code to connect your Telegram account
                       </p>
-                      <button
-                        onClick={() => {
-                          console.log('Generate Linking Code button clicked');
-                          generateLinkingCode();
-                        }}
-                        disabled={isGeneratingCode}
-                        className="px-4 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        {isGeneratingCode ? 'Generating...' : 'Generate Linking Code'}
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            console.log('Generate Linking Code button clicked');
+                            generateLinkingCode();
+                          }}
+                          disabled={isGeneratingCode}
+                          className="flex-1 px-4 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {isGeneratingCode ? 'Generating...' : 'Generate Code'}
+                        </button>
+                        <button
+                          onClick={checkTelegramLinkStatus}
+                          disabled={isCheckingLink}
+                          className="flex-1 px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {isCheckingLink ? 'Checking...' : 'Check Status'}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
