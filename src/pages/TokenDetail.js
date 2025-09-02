@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ExternalLink, RefreshCw, TrendingUp, TrendingDown, DollarSign, Users } from 'lucide-react';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
 
 // Helper function to format PnL display
 const formatPnLDisplay = (pnlPercent) => {
