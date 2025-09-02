@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { LogIn, LogOut, User, Copy, Check, ChevronDown, Settings, MessageCircle } from 'lucide-react';
+import { LogIn, LogOut, User, Copy, Check, ChevronDown, Settings, MessageCircle, X, Save, RefreshCw } from 'lucide-react';
 
 const AuthButton = () => {
   const { ready, authenticated, user, login, logout } = usePrivy();
@@ -8,7 +8,9 @@ const AuthButton = () => {
   const [codeCopied, setCodeCopied] = useState(false);
   const [profileCompleted, setProfileCompleted] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Generate linking code and fetch profile picture when user authenticates
   useEffect(() => {
@@ -98,8 +100,26 @@ const AuthButton = () => {
 
   const handleEditProfile = () => {
     console.log('Edit Profile clicked');
-    // For now, just show an alert. You can expand this later
-    alert('Edit Profile functionality coming soon! This will allow you to:\n\n• Update your profile information\n• Connect additional accounts\n• Manage your preferences\n\nFor now, you can use the Telegram connection below to link your accounts.');
+    setShowEditProfile(true);
+    setShowProfileMenu(false);
+  };
+
+  const handleRefreshProfile = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchProfilePicture();
+      await generateLinkingCode();
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    // TODO: Implement profile saving functionality
+    console.log('Saving profile...');
+    setShowEditProfile(false);
   };
 
   if (!ready) {
@@ -144,26 +164,36 @@ const AuthButton = () => {
           <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800/95 backdrop-blur-sm border border-gray-600/30 rounded-lg shadow-xl z-50">
             <div className="p-4">
               {/* User Info */}
-              <div className="flex items-center space-x-3 mb-4">
-                {profilePicture ? (
-                  <img
-                    src={profilePicture}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-full"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center">
-                    <User className="w-6 h-6 text-blue-400" />
-                  </div>
-                )}
-                <div>
-                  <div className="text-white font-medium">
-                    {user?.twitter?.name || 'User'}
-                  </div>
-                  <div className="text-gray-400 text-sm">
-                    @{user?.twitter?.username || 'user'}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  {profilePicture ? (
+                    <img
+                      src={profilePicture}
+                      alt="Profile"
+                      className="w-12 h-12 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center">
+                      <User className="w-6 h-6 text-blue-400" />
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-white font-medium">
+                      {user?.twitter?.name || 'User'}
+                    </div>
+                    <div className="text-gray-400 text-sm">
+                      @{user?.twitter?.username || 'user'}
+                    </div>
                   </div>
                 </div>
+                <button
+                  onClick={handleRefreshProfile}
+                  disabled={isRefreshing}
+                  className="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                  title="Refresh profile"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </button>
               </div>
 
               {/* Menu Items */}
@@ -180,32 +210,7 @@ const AuthButton = () => {
                   <span className="text-white">Edit Profile</span>
                 </button>
 
-                {/* Telegram Connection */}
-                {linkingCode && (
-                  <div className="px-3 py-2">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <MessageCircle className="w-4 h-4 text-green-400" />
-                      <span className="text-white text-sm">Connect Telegram</span>
-                    </div>
-                    <div className="flex items-center space-x-2 bg-green-600/20 border border-green-500/30 rounded-lg px-3 py-2">
-                      <div className="text-sm">
-                        <div className="text-green-400 font-mono text-lg font-bold">
-                          {linkingCode}
-                        </div>
-                        <div className="text-green-300 text-xs">
-                          Send this code to @JackBot
-                        </div>
-                      </div>
-                      <button
-                        onClick={copyCode}
-                        className="p-1 text-green-400 hover:text-green-300 transition-colors"
-                        title="Copy code"
-                      >
-                        {codeCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                )}
+
 
                 {/* Logout */}
                 <button
@@ -226,6 +231,153 @@ const AuthButton = () => {
             className="fixed inset-0 z-40"
             onClick={() => setShowProfileMenu(false)}
           />
+        )}
+
+        {/* Edit Profile Modal */}
+        {showEditProfile && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gray-800/95 border border-gray-600/30 rounded-lg shadow-xl w-full max-w-md mx-4">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-600/30">
+                <h2 className="text-xl font-semibold text-white">Edit Profile</h2>
+                <button
+                  onClick={() => setShowEditProfile(false)}
+                  className="p-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 space-y-6">
+                {/* Profile Picture Section */}
+                <div className="flex items-center space-x-4">
+                  {profilePicture ? (
+                    <img
+                      src={profilePicture}
+                      alt="Profile"
+                      className="w-16 h-16 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center">
+                      <User className="w-8 h-8 text-blue-400" />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-white font-medium">
+                      {user?.twitter?.name || 'User'}
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      @{user?.twitter?.username || 'user'}
+                    </p>
+                    <button
+                      onClick={handleRefreshProfile}
+                      disabled={isRefreshing}
+                      className="text-blue-400 hover:text-blue-300 text-sm transition-colors disabled:opacity-50 mt-1"
+                    >
+                      {isRefreshing ? 'Refreshing...' : 'Refresh Profile'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Profile Information */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Display Name
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={user?.twitter?.name || ''}
+                      className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Enter your display name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Twitter Username
+                    </label>
+                    <input
+                      type="text"
+                      defaultValue={user?.twitter?.username ? `@${user.twitter.username}` : ''}
+                      disabled
+                      className="w-full px-3 py-2 bg-gray-700/30 border border-gray-600/30 rounded-lg text-gray-400 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Twitter username cannot be changed</p>
+                  </div>
+                </div>
+
+                {/* Telegram Connection Section */}
+                <div className="border-t border-gray-600/30 pt-6">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <MessageCircle className="w-5 h-5 text-green-400" />
+                    <h3 className="text-white font-medium">Connect Telegram</h3>
+                  </div>
+                  
+                  {linkingCode ? (
+                    <div className="space-y-3">
+                      <p className="text-gray-300 text-sm">
+                        Send this code to @JackBot to link your Telegram account:
+                      </p>
+                      <div className="flex items-center space-x-2 bg-green-600/20 border border-green-500/30 rounded-lg px-4 py-3">
+                        <div className="flex-1">
+                          <div className="text-green-400 font-mono text-2xl font-bold">
+                            {linkingCode}
+                          </div>
+                          <div className="text-green-300 text-xs">
+                            Expires in 10 minutes
+                          </div>
+                        </div>
+                        <button
+                          onClick={copyCode}
+                          className="p-2 text-green-400 hover:text-green-300 transition-colors"
+                          title="Copy code"
+                        >
+                          {codeCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                        </button>
+                      </div>
+                      <button
+                        onClick={generateLinkingCode}
+                        className="w-full px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors text-sm"
+                      >
+                        Generate New Code
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-gray-400 text-sm mb-3">
+                        Generate a linking code to connect your Telegram account
+                      </p>
+                      <button
+                        onClick={generateLinkingCode}
+                        className="px-4 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg transition-colors"
+                      >
+                        Generate Linking Code
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-600/30">
+                <button
+                  onClick={() => setShowEditProfile(false)}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveProfile}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     );
