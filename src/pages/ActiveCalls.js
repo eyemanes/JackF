@@ -301,24 +301,22 @@ function ActiveCalls() {
                         {/* User Info - Clickable if linked */}
                         <div className="min-w-0">
                           {isLinked && twitterInfo ? (
-                            <a 
-                              href={`https://twitter.com/${twitterInfo.twitterUsername}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <Link 
+                              to={`/profile/${twitterInfo.twitterUsername}`}
                               className="block group hover:bg-blue-500/10 rounded-lg p-1 -m-1 transition-colors"
                             >
                               <div className="flex items-center space-x-2">
                                 <span className="text-blue-300 font-medium truncate group-hover:text-blue-200">
                                   @{twitterInfo.twitterUsername}
                                 </span>
-                                <ExternalLink className="w-3 h-3 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <User className="w-3 h-3 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                               </div>
                               {twitterInfo.twitterName && (
                                 <div className="text-gray-500 text-sm truncate group-hover:text-gray-400">
                                   {twitterInfo.twitterName}
                                 </div>
                               )}
-                            </a>
+                            </Link>
                           ) : (
                             <div className="text-gray-300 font-medium truncate">
                               {call.user?.displayName || call.user?.username || 'Anonymous'}

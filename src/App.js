@@ -120,6 +120,7 @@ function App() {
                 <Route path="/" element={<ActiveCalls />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/:username" element={<Profile />} />
                 <Route path="/token/:contractAddress" element={<TokenDetail />} />
               </Routes>
             </main>

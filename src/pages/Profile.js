@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
+import { useParams } from 'react-router-dom';
 import { 
   User, 
   Twitter, 
@@ -27,6 +28,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel
 
 const Profile = () => {
   const { ready, authenticated, user } = usePrivy();
+  const { username } = useParams();
   const [copied, setCopied] = useState('');
   const [userCalls, setUserCalls] = useState([]);
   const [userStats, setUserStats] = useState(null);
@@ -68,10 +70,12 @@ const Profile = () => {
   useEffect(() => {
     if (authenticated && user?.twitter) {
       fetchUserData();
-      checkTelegramLinkStatus();
-      loadUserBanner();
+      if (!username) { // Only check link status for own profile
+        checkTelegramLinkStatus();
+        loadUserBanner();
+      }
     }
-  }, [authenticated, user]);
+  }, [authenticated, user, username]);
 
   const loadUserBanner = async () => {
     try {
@@ -134,15 +138,27 @@ const Profile = () => {
     try {
       setLoading(true);
       
-      const twitterId = getTwitterId();
-      if (!twitterId) {
-        console.log('❌ Profile - No Twitter ID found for fetching user data');
-        console.log('🛠️ Profile - Available Twitter object:', user?.twitter);
+      let targetTwitterId;
+      
+      if (username) {
+        // Viewing another user's profile - we need to find their Twitter ID by username
+        // For now, we'll need to implement a lookup by username
+        // This is a simplified approach - in a real app you'd have a proper user lookup
+        console.log(`🔍 Fetching profile for username: ${username}`);
+        // TODO: Implement username to Twitter ID lookup
         return;
+      } else {
+        // Viewing own profile
+        targetTwitterId = getTwitterId();
+        if (!targetTwitterId) {
+          console.log('❌ Profile - No Twitter ID found for fetching user data');
+          console.log('🛠️ Profile - Available Twitter object:', user?.twitter);
+          return;
+        }
       }
 
-      console.log(`🔍 Fetching profile data for Twitter ID: ${twitterId}`);
-      const profileResponse = await fetch(`${API_BASE_URL}/user-profile/${twitterId}`);
+      console.log(`🔍 Fetching profile data for Twitter ID: ${targetTwitterId}`);
+      const profileResponse = await fetch(`${API_BASE_URL}/user-profile/${targetTwitterId}`);
       
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
@@ -437,8 +453,12 @@ const Profile = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">🐙 Profile</h1>
-          <p className="text-gray-400 mt-1">Your trading statistics and call history</p>
+          <h1 className="text-3xl font-bold text-white">
+            🐙 {username ? `@${username}'s Profile` : 'Profile'}
+          </h1>
+          <p className="text-gray-400 mt-1">
+            {username ? `${username}'s trading statistics and call history` : 'Your trading statistics and call history'}
+          </p>
         </div>
       </div>
 
@@ -458,9 +478,10 @@ const Profile = () => {
             </div>
           )}
           
-          {/* Banner Edit Button */}
-          <div className="absolute top-4 right-4">
-            {isEditingBanner ? (
+          {/* Banner Edit Button - Only show for own profile */}
+          {!username && (
+            <div className="absolute top-4 right-4">
+              {isEditingBanner ? (
               <div className="flex items-center space-x-2 bg-black/50 backdrop-blur-sm rounded-lg p-2">
                 <input
                   type="url"
@@ -499,7 +520,8 @@ const Profile = () => {
                 <Edit3 className="w-4 h-4" />
               </button>
             )}
-          </div>
+            </div>
+          )}
 
           {/* Hidden file input */}
           <input
@@ -546,20 +568,24 @@ const Profile = () => {
               <p className="text-gray-400 text-lg">
                 @{user?.twitter?.username || 'user'}
               </p>
-              <div className="flex items-center space-x-4 mt-2">
-                {telegramLinked ? (
-                  <span className="text-green-400 text-sm font-medium">✅ Telegram Linked</span>
-                ) : (
-                  <span className="text-yellow-400 text-sm font-medium">⏳ Telegram Not Linked</span>
-                )}
-                <button
-                  onClick={checkTelegramLinkStatus}
-                  disabled={isCheckingLink}
-                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors disabled:opacity-50"
-                >
-                  {isCheckingLink ? 'Checking...' : 'Refresh Status'}
-                </button>
-              </div>
+              {!username && (
+                <div className="flex items-center space-x-4 mt-2">
+                  {telegramLinked ? (
+                    <span className="text-green-400 text-sm font-medium">✅ Telegram Linked</span>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-yellow-400 text-sm font-medium">⏳ Telegram Not Linked</span>
+                      <button
+                        onClick={checkTelegramLinkStatus}
+                        disabled={isCheckingLink}
+                        className="text-blue-400 hover:text-blue-300 text-sm transition-colors disabled:opacity-50"
+                      >
+                        {isCheckingLink ? 'Checking...' : 'Refresh Status'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* Profile Links */}
@@ -589,152 +615,117 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Statistics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="squid-card rounded-xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <BarChart3 className="w-6 h-6 text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">Total Calls</h3>
+      {/* Compact Statistics Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="squid-card rounded-lg p-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <BarChart3 className="w-4 h-4 text-blue-400" />
+            <h3 className="text-sm font-medium text-white">Calls</h3>
           </div>
-          <div className="text-3xl font-bold text-white">{userStats?.totalCalls || 0}</div>
-          <div className="text-gray-400 text-sm">All time calls made</div>
+          <div className="text-xl font-bold text-white">{userStats?.totalCalls || 0}</div>
         </div>
 
-        <div className="squid-card rounded-xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Trophy className="w-6 h-6 text-green-400" />
-            <h3 className="text-lg font-semibold text-white">Win Rate</h3>
+        <div className="squid-card rounded-lg p-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <Trophy className="w-4 h-4 text-green-400" />
+            <h3 className="text-sm font-medium text-white">Win Rate</h3>
           </div>
-          <div className="text-3xl font-bold text-white">{(userStats?.winRate || 0).toFixed(1)}%</div>
-          <div className="text-gray-400 text-sm">Successful calls</div>
+          <div className="text-xl font-bold text-white">{(userStats?.winRate || 0).toFixed(1)}%</div>
         </div>
 
-        <div className="squid-card rounded-xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Star className="w-6 h-6 text-yellow-400" />
-            <h3 className="text-lg font-semibold text-white">Total Score</h3>
+        <div className="squid-card rounded-lg p-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <Star className="w-4 h-4 text-yellow-400" />
+            <h3 className="text-sm font-medium text-white">Score</h3>
           </div>
-          <div className="text-3xl font-bold text-white">{(userStats?.totalScore || 0).toFixed(1)}</div>
-          <div className="text-gray-400 text-sm">Leaderboard points</div>
+          <div className="text-xl font-bold text-white">{(userStats?.totalScore || 0).toFixed(1)}</div>
         </div>
 
-        <div className="squid-card rounded-xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <TrendingUp className="w-6 h-6 text-green-400" />
-            <h3 className="text-lg font-semibold text-white">Best Call</h3>
+        <div className="squid-card rounded-lg p-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <TrendingUp className="w-4 h-4 text-green-400" />
+            <h3 className="text-sm font-medium text-white">Best</h3>
           </div>
-          <div className="text-3xl font-bold text-white">{formatPnLDisplay(userStats?.bestCall || 0)}</div>
-          <div className="text-gray-400 text-sm">Highest PnL achieved</div>
-        </div>
-
-        <div className="squid-card rounded-xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Activity className="w-6 h-6 text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">Avg PnL</h3>
-          </div>
-          <div className="text-3xl font-bold text-white">{formatPnLDisplay(userStats?.avgPnL || 0)}</div>
-          <div className="text-gray-400 text-sm">Average performance</div>
-        </div>
-
-        <div className="squid-card rounded-xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Calendar className="w-6 h-6 text-purple-400" />
-            <h3 className="text-lg font-semibold text-white">Active Days</h3>
-          </div>
-          <div className="text-3xl font-bold text-white">
-            {userCalls.length > 0 ? new Set(userCalls.map(call => new Date(call.createdAt).toDateString())).size : 0}
-          </div>
-          <div className="text-gray-400 text-sm">Days with calls</div>
+          <div className="text-xl font-bold text-white">{formatPnLDisplay(userStats?.bestCall || 0)}</div>
         </div>
       </div>
 
-      {/* Top Calls by Period */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {['7d', '14d', '1m'].map((period) => (
-          <div key={period} className="squid-card rounded-xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <Trophy className="w-5 h-5 text-yellow-400" />
-              <h3 className="text-lg font-semibold text-white">Top Calls ({period})</h3>
-            </div>
-            <div className="space-y-3">
-              {getTopCalls(period).length > 0 ? (
-                getTopCalls(period).map((call, index) => (
-                  <div key={call.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center">
-                        <span className="text-yellow-400 text-xs font-bold">{index + 1}</span>
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">{call.token?.symbol}</div>
-                        <div className="text-gray-400 text-xs">{formatTime(call.createdAt)}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className={`font-bold ${(call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {formatPnLDisplay(call.performance?.pnlPercent || 0)}
-                      </div>
-                      <div className="text-gray-400 text-xs">
-                        Score: {(call.performance?.score || 0).toFixed(1)}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-gray-400 text-sm text-center py-4">No calls in this period</div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Recent Calls Feed */}
-      <div className="squid-card rounded-xl p-6">
-        <div className="flex items-center space-x-3 mb-6">
-          <Clock className="w-6 h-6 text-blue-400" />
-          <h3 className="text-xl font-semibold text-white">Recent Calls Feed</h3>
+      {/* Compact Top Calls */}
+      <div className="squid-card rounded-xl p-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <Trophy className="w-5 h-5 text-yellow-400" />
+          <h3 className="text-lg font-semibold text-white">Top Calls (7d)</h3>
         </div>
-        
-        <div className="space-y-4">
-          {getRecentCalls().length > 0 ? (
-            getRecentCalls().map((call) => (
-              <div key={call.id} className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">{call.token?.symbol?.charAt(0) || '?'}</span>
+        <div className="space-y-2">
+          {getTopCalls('7d').length > 0 ? (
+            getTopCalls('7d').slice(0, 3).map((call, index) => (
+              <div key={call.id} className="flex items-center justify-between p-2 bg-gray-800/50 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="w-5 h-5 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-yellow-400 text-xs font-bold">{index + 1}</span>
                   </div>
                   <div>
-                    <div className="text-white font-medium">{call.token?.symbol} - {call.token?.name}</div>
-                    <div className="text-gray-400 text-sm">
-                      Called at ${formatNumber(call.prices?.entryMarketCap || 0)} MCap
-                    </div>
-                    <div className="text-gray-500 text-xs">{formatTime(call.createdAt)}</div>
+                    <div className="text-white text-sm font-medium">{call.tokenSymbol || call.token?.symbol}</div>
+                    <div className="text-gray-400 text-xs">{formatTime(call.createdAt)}</div>
                   </div>
                 </div>
-                
                 <div className="text-right">
-                  <div className="flex items-center space-x-2 mb-1">
-                    {(call.performance?.pnlPercent || 0) >= 0 ? (
-                      <TrendingUp className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4 text-red-400" />
-                    )}
-                    <span className={`font-bold ${(call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatPnLDisplay(call.performance?.pnlPercent || 0)}
-                    </span>
-                  </div>
-                  <div className="text-gray-400 text-sm">
-                    Score: {(call.performance?.score || 0).toFixed(1)}
-                  </div>
-                  <div className="text-gray-500 text-xs">
-                    Current: ${formatNumber(call.prices?.currentMarketCap || 0)}
+                  <div className={`text-sm font-bold ${(call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {formatPnLDisplay(call.performance?.pnlPercent || 0)}
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-400 text-lg mb-2">No calls yet</div>
-              <div className="text-gray-500 text-sm">Start making calls to see them here!</div>
+            <div className="text-gray-400 text-sm text-center py-2">No calls in this period</div>
+          )}
+        </div>
+      </div>
+
+      {/* Compact Recent Calls Feed */}
+      <div className="squid-card rounded-xl p-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <Clock className="w-5 h-5 text-blue-400" />
+          <h3 className="text-lg font-semibold text-white">Recent Calls</h3>
+        </div>
+        
+        <div className="space-y-2">
+          {getRecentCalls().length > 0 ? (
+            getRecentCalls().slice(0, 5).map((call) => (
+              <div key={call.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">{(call.tokenSymbol || call.token?.symbol)?.charAt(0) || '?'}</span>
+                  </div>
+                  <div>
+                    <div className="text-white text-sm font-medium">{call.tokenSymbol || call.token?.symbol} - {call.tokenName || call.token?.name}</div>
+                    <div className="text-gray-400 text-xs">
+                      ${formatNumber(call.entryMarketCap || call.prices?.entryMarketCap || 0)} • {formatTime(call.createdAt)}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <div className="flex items-center space-x-1">
+                    {(call.performance?.pnlPercent || 0) >= 0 ? (
+                      <TrendingUp className="w-3 h-3 text-green-400" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3 text-red-400" />
+                    )}
+                    <span className={`text-sm font-bold ${(call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatPnLDisplay(call.performance?.pnlPercent || 0)}
+                    </span>
+                  </div>
+                  <div className="text-gray-400 text-xs">
+                    Score: {(call.performance?.score || 0).toFixed(1)}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4">
+              <div className="text-gray-400 text-sm mb-1">No calls yet</div>
+              <div className="text-gray-500 text-xs">Start making calls to see them here!</div>
             </div>
           )}
         </div>
