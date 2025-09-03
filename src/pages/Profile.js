@@ -633,7 +633,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -704,7 +704,7 @@ const Profile = () => {
             <div className="text-gray-400 text-sm text-center py-4">No calls in this period</div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Recent Calls Feed */}
       <Card>
@@ -749,7 +749,7 @@ const Profile = () => {
             </div>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
