@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import ActiveCalls from './pages/ActiveCalls';
 import TokenDetail from './pages/TokenDetail';
 import Profile from './pages/Profile';
+import Documentation from './pages/Documentation';
 import AuthButton from './components/AuthButton';
 import Sidebar from './components/Sidebar';
 import { privyConfig } from './privy-config';
@@ -74,13 +75,14 @@ function App() {
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
               <main className="flex-1 p-6 pb-20 md:pb-6">
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/calls" element={<ActiveCalls />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/profile/:username" element={<Profile />} />
-                  <Route path="/token/:contractAddress" element={<TokenDetail />} />
-                </Routes>
+                              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/calls" element={<ActiveCalls />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/:username" element={<Profile />} />
+                <Route path="/token/:contractAddress" element={<TokenDetail />} />
+                <Route path="/docs" element={<Documentation />} />
+              </Routes>
               </main>
 
               {/* Footer - Hidden on mobile */}

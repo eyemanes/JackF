@@ -22,7 +22,8 @@ import {
   Activity,
   Upload,
   X,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from 'lucide-react';
 
 import Card from '../components/ui/Card';
@@ -46,6 +47,7 @@ const Profile = () => {
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [timeRange, setTimeRange] = useState('24h');
   const [refreshing, setRefreshing] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
   const fileInputRef = useRef(null);
 
   const timeRangeOptions = [
@@ -355,7 +357,7 @@ const Profile = () => {
     });
 
     return filteredCalls
-      .sort((a, b) => (b.performance?.pnlPercent || 0) - (a.performance?.pnlPercent || 0))
+      .sort((a, b) => (b.pnlPercent || b.performance?.pnlPercent || 0) - (a.pnlPercent || a.performance?.pnlPercent || 0))
       .slice(0, 5);
   };
 

@@ -2,7 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
-  User
+  User,
+  FileText
 } from 'lucide-react';
 
 const Sidebar = ({ stats, user }) => {
@@ -11,6 +12,7 @@ const Sidebar = ({ stats, user }) => {
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/profile', label: 'Profile', icon: User },
+    { path: '/docs', label: 'Documentation', icon: FileText },
   ];
 
   return (
