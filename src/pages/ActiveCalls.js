@@ -41,9 +41,17 @@ function ActiveCalls() {
         );
         setCalls(sortedCalls);
         setLastUpdated(new Date());
-        console.log('Active calls showing eyeman93 calls:', calls.length);
-      console.log('Sample call user info:', calls[0]?.user);
-      console.log('Twitter info in calls:', calls[0]?.user?.twitterInfo);
+        
+        // 🔧 FIXED: Log the CORRECT data (sortedCalls, not stale calls state)
+        console.log('Active calls fetched successfully:', sortedCalls.length, 'total calls');
+        console.log('Sample call user info:', sortedCalls[0]?.user);
+        console.log('Twitter info in calls:', sortedCalls[0]?.user?.twitterInfo);
+        console.log('First few calls:', sortedCalls.slice(0, 3).map(call => ({
+          token: call.token?.symbol,
+          user: call.user?.displayName,
+          isLinked: call.user?.isLinked,
+          twitterUsername: call.user?.twitterUsername
+        })));
       } else {
         console.error('API returned error:', data.error);
         setCalls([]);
