@@ -23,7 +23,7 @@ import KPI from '../components/ui/KPI';
 import Segmented from '../components/ui/Segmented';
 import Badge from '../components/ui/Badge';
 import Table from '../components/ui/Table';
-import { getCurrentGroup } from '../config/groups';
+import { getCurrentGroup, getLockedGroups } from '../config/groups';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
 
@@ -74,6 +74,7 @@ function Dashboard() {
   const [copiedTokens, setCopiedTokens] = useState(new Set());
   
   const currentGroup = getCurrentGroup();
+  const lockedGroups = getLockedGroups();
 
   const timeRangeOptions = [
     { value: '24h', label: '24h' },
@@ -299,7 +300,13 @@ function Dashboard() {
           <Card className="p-0">
             <div className="p-4 border-b border-white/5">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-white">Active Calls</h2>
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-lg font-semibold text-white">Active Calls</h2>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 bg-${currentGroup.color}-400 rounded-full`}></div>
+                    <span className={`text-${currentGroup.color}-400 text-sm font-medium`}>{currentGroup.displayName}</span>
+                  </div>
+                </div>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -492,6 +499,40 @@ function Dashboard() {
                 </div>
               </div>
             )}
+          </Card>
+          
+          {/* Upcoming Groups */}
+          <Card className="mt-6">
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-white mb-4">Group Progression</h3>
+              <div className="space-y-3">
+                {/* Current Group */}
+                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 bg-${currentGroup.color}-400 rounded-full`}></div>
+                    <div>
+                      <div className="text-white font-medium">{currentGroup.displayName}</div>
+                      <div className="text-gray-400 text-sm">{currentGroup.description}</div>
+                    </div>
+                  </div>
+                  <Badge variant="success" size="sm">Active</Badge>
+                </div>
+                
+                {/* Locked Groups */}
+                {lockedGroups.map((group, index) => (
+                  <div key={group.id} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 opacity-60">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 bg-${group.color}-400 rounded-full`}></div>
+                      <div>
+                        <div className="text-gray-300 font-medium">{group.displayName}</div>
+                        <div className="text-gray-500 text-sm">{group.description}</div>
+                      </div>
+                    </div>
+                    <Badge variant="warning" size="sm">Coming Soon</Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
           </Card>
         </div>
 

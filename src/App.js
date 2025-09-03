@@ -62,7 +62,7 @@ function App() {
           <div className="flex items-center justify-between p-4 border-b border-white/5 bg-gray-900/50 backdrop-blur-md">
             <div className="flex items-center space-x-3">
               <span className="text-2xl font-bold text-white">
-                <span className="text-blue-400">🐙</span> Jack
+                <span className="text-blue-400">🐙</span> Jack of all Scans
               </span>
             </div>
             <AuthButton />

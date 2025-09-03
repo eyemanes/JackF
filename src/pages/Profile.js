@@ -43,6 +43,7 @@ const Profile = () => {
   const [bannerUrl, setBannerUrl] = useState('');
   const [isEditingBanner, setIsEditingBanner] = useState(false);
   const [telegramLinked, setTelegramLinked] = useState(false);
+  const [telegramUsername, setTelegramUsername] = useState(null);
   const [isCheckingLink, setIsCheckingLink] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [timeRange, setTimeRange] = useState('24h');
@@ -222,12 +223,14 @@ const Profile = () => {
           });
           
           setTelegramLinked(data.isLinked || false);
+          setTelegramUsername(data.profileData?.telegramUsername || null);
           
           console.log('✅ Profile stats updated:', {
             totalCalls: data.totalCalls,
             winRate: data.winRate,
             totalScore: data.totalScore,
-            isLinked: data.isLinked
+            isLinked: data.isLinked,
+            telegramUsername: data.profileData?.telegramUsername
           });
         }
       } else {
@@ -651,13 +654,13 @@ const Profile = () => {
               >
                 <Twitter className="w-5 h-5" />
               </a>
-              {telegramLinked && (
+              {telegramLinked && telegramUsername && (
                 <a
-                  href={`https://t.me/${user?.twitter?.username}`}
+                  href={`https://t.me/${telegramUsername}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-3 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors"
-                  title="View Telegram Profile"
+                  title={`View @${telegramUsername} on Telegram`}
                 >
                   <MessageCircle className="w-5 h-5" />
                 </a>

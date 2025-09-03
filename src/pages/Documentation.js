@@ -90,10 +90,51 @@ const Documentation = () => {
           <FileText className="w-6 h-6 text-blue-400" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-white">Jack's Bot</h1>
+          <h1 className="text-2xl font-bold text-white">Jack of all Scans</h1>
           <p className="text-gray-400 text-sm">Solana tracker with fair PnL</p>
         </div>
       </div>
+
+      {/* La Liga System */}
+      <Card>
+        <div className="flex items-center space-x-3 mb-4">
+          <Trophy className="w-5 h-5 text-yellow-400" />
+          <h2 className="text-lg font-semibold text-white">La Liga System</h2>
+        </div>
+        <div className="space-y-4">
+          <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+            <h3 className="text-white font-semibold mb-2">🏆 Group Promotion & Relegation</h3>
+            <p className="text-gray-300 text-sm mb-3">
+              Weekly rankings determine who moves up or down between groups.
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-green-400 text-sm font-medium">Top 10 → Promoted</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                <span className="text-red-400 text-sm font-medium">Worst 10 → Relegated</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="p-3 bg-orange-600/10 border border-orange-500/20 rounded">
+              <h4 className="text-orange-300 font-medium text-sm mb-1">⚔️ Jack of all Trenches</h4>
+              <p className="text-gray-400 text-xs">Entry level - Top 5 climb up weekly</p>
+            </div>
+            <div className="p-3 bg-blue-600/10 border border-blue-500/20 rounded opacity-60">
+              <h4 className="text-blue-300 font-medium text-sm mb-1">🏛️ Jack Lounge</h4>
+              <p className="text-gray-400 text-xs">Mid level - 5 up, 5 down weekly</p>
+            </div>
+            <div className="p-3 bg-purple-600/10 border border-purple-500/20 rounded opacity-60">
+              <h4 className="text-purple-300 font-medium text-sm mb-1">🏟️ Jacky FNF</h4>
+              <p className="text-gray-400 text-xs">High stakes - Rise or fall</p>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Commands */}
       <Card>
