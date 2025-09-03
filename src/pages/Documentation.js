@@ -75,9 +75,9 @@ const Documentation = () => {
       icon: <Zap className="w-5 h-5 text-blue-400" />
     },
     {
-      title: "10x Cap",
-      description: "Max PnL capped at 10x",
-      example: "Even 50x = max +900%",
+      title: "No Cap",
+      description: "No maximum limit - real gains allowed",
+      example: "Tokens can go 100x, 200x, or higher!",
       icon: <TrendingUp className="w-5 h-5 text-green-400" />
     }
   ];
