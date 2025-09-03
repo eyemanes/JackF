@@ -11,9 +11,11 @@ export const privyConfig = {
       logo: 'https://your-logo-url.com/logo.png', // Optional: add your logo
     },
     
-    // No embedded wallets
+    // No embedded wallets - completely disable
     embeddedWallets: {
       createOnLogin: 'off',
+      noPromptOnSignature: true,
+      requireUserPasswordOnCreate: false,
     },
     
     // Social login configuration - ONLY Twitter

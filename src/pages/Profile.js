@@ -24,6 +24,11 @@ import {
   X
 } from 'lucide-react';
 
+import Card from '../components/ui/Card';
+import KPI from '../components/ui/KPI';
+import Segmented from '../components/ui/Segmented';
+import Badge from '../components/ui/Badge';
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
 
 const Profile = () => {
@@ -38,7 +43,15 @@ const Profile = () => {
   const [telegramLinked, setTelegramLinked] = useState(false);
   const [isCheckingLink, setIsCheckingLink] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [timeRange, setTimeRange] = useState('24h');
   const fileInputRef = useRef(null);
+
+  const timeRangeOptions = [
+    { value: '24h', label: '24h' },
+    { value: '7d', label: '7d' },
+    { value: '14d', label: '14d' },
+    { value: '30d', label: '30d' }
+  ];
 
   // Get Twitter profile picture URL
   const getTwitterProfilePicture = () => {
@@ -317,9 +330,10 @@ const Profile = () => {
   const getTopCalls = (period) => {
     const now = new Date();
     const periodMs = {
+      '24h': 24 * 60 * 60 * 1000,
       '7d': 7 * 24 * 60 * 60 * 1000,
       '14d': 14 * 24 * 60 * 60 * 1000,
-      '1m': 30 * 24 * 60 * 60 * 1000
+      '30d': 30 * 24 * 60 * 60 * 1000
     };
 
     const filteredCalls = userCalls.filter(call => {
@@ -459,17 +473,17 @@ const Profile = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">
-            🐙 {username ? `@${username}'s Profile` : 'Profile'}
+          <h1 className="text-2xl font-bold text-white">
+            {username ? `@${username}'s Profile` : 'Profile'}
           </h1>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-400 text-sm">
             {username ? `${username}'s trading statistics and call history` : 'Your trading statistics and call history'}
           </p>
         </div>
       </div>
 
       {/* Profile Header with Banner */}
-      <div className="squid-card rounded-xl overflow-hidden">
+      <Card className="p-0 overflow-hidden">
         {/* Banner */}
         <div className="relative h-48 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
           {bannerUrl ? (
@@ -621,53 +635,54 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Compact Statistics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="squid-card rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <BarChart3 className="w-4 h-4 text-blue-400" />
-            <h3 className="text-sm font-medium text-white">Calls</h3>
-          </div>
-          <div className="text-xl font-bold text-white">{userStats?.totalCalls || 0}</div>
-        </div>
-
-        <div className="squid-card rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <Trophy className="w-4 h-4 text-green-400" />
-            <h3 className="text-sm font-medium text-white">Win Rate</h3>
-          </div>
-          <div className="text-xl font-bold text-white">{(userStats?.winRate || 0).toFixed(1)}%</div>
-        </div>
-
-        <div className="squid-card rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <Star className="w-4 h-4 text-yellow-400" />
-            <h3 className="text-sm font-medium text-white">Score</h3>
-          </div>
-          <div className="text-xl font-bold text-white">{(userStats?.totalScore || 0).toFixed(1)}</div>
-        </div>
-
-        <div className="squid-card rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-green-400" />
-            <h3 className="text-sm font-medium text-white">Best</h3>
-          </div>
-          <div className="text-xl font-bold text-white">{formatPnLDisplay(userStats?.bestCall || 0)}</div>
-        </div>
+      {/* KPI Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPI 
+          title="Total Calls" 
+          value={userStats?.totalCalls || 0} 
+          icon={BarChart3}
+          size="sm"
+        />
+        <KPI 
+          title="Win Rate" 
+          value={`${(userStats?.winRate || 0).toFixed(1)}%`} 
+          icon={Trophy}
+          size="sm"
+        />
+        <KPI 
+          title="Total Score" 
+          value={(userStats?.totalScore || 0).toFixed(1)} 
+          icon={Star}
+          size="sm"
+        />
+        <KPI 
+          title="Best Call" 
+          value={formatPnLDisplay(userStats?.bestCall || 0)} 
+          icon={TrendingUp}
+          size="sm"
+        />
       </div>
 
-      {/* Compact Top Calls */}
-      <div className="squid-card rounded-xl p-4">
-        <div className="flex items-center space-x-2 mb-4">
-          <Trophy className="w-5 h-5 text-yellow-400" />
-          <h3 className="text-lg font-semibold text-white">Top Calls (7d)</h3>
+      {/* Top Calls */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <Trophy className="w-5 h-5 text-yellow-400" />
+            <h3 className="text-lg font-semibold text-white">Top Calls</h3>
+          </div>
+          <Segmented 
+            options={timeRangeOptions}
+            value={timeRange}
+            onChange={setTimeRange}
+            size="sm"
+          />
         </div>
         <div className="space-y-2">
-          {getTopCalls('7d').length > 0 ? (
-            getTopCalls('7d').slice(0, 3).map((call, index) => (
-              <div key={call.id} className="flex items-center justify-between p-2 bg-gray-800/50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 bg-yellow-500/20 rounded-full flex items-center justify-center">
+          {getTopCalls(timeRange).length > 0 ? (
+            getTopCalls(timeRange).slice(0, 5).map((call, index) => (
+              <div key={call.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center">
                     <span className="text-yellow-400 text-xs font-bold">{index + 1}</span>
                   </div>
                   <div>
@@ -676,20 +691,23 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={`text-sm font-bold ${(call.pnlPercent || call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  <Badge 
+                    variant={(call.pnlPercent || call.performance?.pnlPercent || 0) >= 0 ? 'success' : 'error'}
+                    size="sm"
+                  >
                     {formatPnLDisplay(call.pnlPercent || call.performance?.pnlPercent || 0)}
-                  </div>
+                  </Badge>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-gray-400 text-sm text-center py-2">No calls in this period</div>
+            <div className="text-gray-400 text-sm text-center py-4">No calls in this period</div>
           )}
         </div>
       </div>
 
-      {/* Compact Recent Calls Feed */}
-      <div className="squid-card rounded-xl p-4">
+      {/* Recent Calls Feed */}
+      <Card>
         <div className="flex items-center space-x-2 mb-4">
           <Clock className="w-5 h-5 text-blue-400" />
           <h3 className="text-lg font-semibold text-white">Recent Calls</h3>
@@ -712,17 +730,13 @@ const Profile = () => {
                 </div>
                 
                 <div className="text-right">
-                  <div className="flex items-center space-x-1">
-                    {(call.pnlPercent || call.performance?.pnlPercent || 0) >= 0 ? (
-                      <TrendingUp className="w-3 h-3 text-green-400" />
-                    ) : (
-                      <TrendingDown className="w-3 h-3 text-red-400" />
-                    )}
-                    <span className={`text-sm font-bold ${(call.pnlPercent || call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatPnLDisplay(call.pnlPercent || call.performance?.pnlPercent || 0)}
-                    </span>
-                  </div>
-                  <div className="text-gray-400 text-xs">
+                  <Badge 
+                    variant={(call.pnlPercent || call.performance?.pnlPercent || 0) >= 0 ? 'success' : 'error'}
+                    size="sm"
+                  >
+                    {formatPnLDisplay(call.pnlPercent || call.performance?.pnlPercent || 0)}
+                  </Badge>
+                  <div className="text-gray-400 text-xs mt-1">
                     Score: {(call.score || call.performance?.score || 0).toFixed(1)}
                   </div>
                 </div>
