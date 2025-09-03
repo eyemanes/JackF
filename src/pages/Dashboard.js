@@ -95,6 +95,11 @@ function Dashboard() {
   const fetchActiveCalls = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/calls`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.success) {
@@ -103,22 +108,35 @@ function Dashboard() {
         );
         setCalls(sortedCalls);
         setLastUpdated(new Date());
+      } else {
+        console.error('API returned error:', data.error);
+        setCalls([]);
       }
     } catch (error) {
       console.error('Error fetching active calls:', error);
+      setCalls([]);
     }
   };
 
   const fetchLeaderboard = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/leaderboard?limit=10`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.success) {
         setLeaderboard(data.data);
+      } else {
+        console.error('Leaderboard API returned error:', data.error);
+        setLeaderboard([]);
       }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
+      setLeaderboard([]);
     }
   };
 
