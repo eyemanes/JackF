@@ -89,7 +89,7 @@ function Leaderboard() {
                 <Medal className="w-12 h-12 text-gray-300" />
               </div>
               <div className="text-2xl font-bold text-white mb-2">
-                {leaderboard[1].username ? `@${leaderboard[1].username}` : leaderboard[1].firstName}
+                {leaderboard[1].displayName || (leaderboard[1].twitterUsername ? `@${leaderboard[1].twitterUsername}` : leaderboard[1].username ? `@${leaderboard[1].username}` : leaderboard[1].firstName || 'Anonymous')}
               </div>
               <div className="text-gray-300 text-lg mb-2">
                 {leaderboard[1].totalScore.toFixed(1)} pts
@@ -107,7 +107,7 @@ function Leaderboard() {
                 <Trophy className="w-16 h-16 text-yellow-400" />
               </div>
               <div className="text-3xl font-bold text-white mb-2">
-                {leaderboard[0].username ? `@${leaderboard[0].username}` : leaderboard[0].firstName}
+                {leaderboard[0].displayName || (leaderboard[0].twitterUsername ? `@${leaderboard[0].twitterUsername}` : leaderboard[0].username ? `@${leaderboard[0].username}` : leaderboard[0].firstName || 'Anonymous')}
               </div>
               <div className="text-yellow-400 text-xl mb-2 font-bold">
                 {leaderboard[0].totalScore.toFixed(1)} pts
@@ -125,7 +125,7 @@ function Leaderboard() {
                 <Award className="w-12 h-12 text-amber-600" />
               </div>
               <div className="text-2xl font-bold text-white mb-2">
-                {leaderboard[2].username ? `@${leaderboard[2].username}` : leaderboard[2].firstName}
+                {leaderboard[2].displayName || (leaderboard[2].twitterUsername ? `@${leaderboard[2].twitterUsername}` : leaderboard[2].username ? `@${leaderboard[2].username}` : leaderboard[2].firstName || 'Anonymous')}
               </div>
               <div className="text-amber-500 text-lg mb-2">
                 {leaderboard[2].totalScore.toFixed(1)} pts
@@ -157,10 +157,22 @@ function Leaderboard() {
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <User className="w-4 h-4 text-gray-400" />
+                      {user.isLinked && user.twitterProfilePic ? (
+                        <img 
+                          src={user.twitterProfilePic} 
+                          alt={`@${user.twitterUsername}`}
+                          className="w-4 h-4 rounded-full"
+                          onError={(e) => e.target.style.display = 'none'}
+                        />
+                      ) : (
+                        <User className="w-4 h-4 text-gray-400" />
+                      )}
                       <span className="text-white font-semibold text-lg">
-                        {user.username ? `@${user.username}` : user.firstName || 'Anonymous'}
+                        {user.displayName || user.twitterUsername ? `@${user.twitterUsername}` : user.username ? `@${user.username}` : user.firstName || 'Anonymous'}
                       </span>
+                      {user.isLinked && (
+                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full">Twitter</span>
+                      )}
                     </div>
                     <div className="text-gray-400 text-sm">
                       Telegram ID: {user.telegramId}
