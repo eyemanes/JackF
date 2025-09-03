@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { RefreshCw, TrendingUp, TrendingDown, Clock, User, ExternalLink, Twitter, Zap } from 'lucide-react';
+import { RefreshCw, TrendingUp, TrendingDown, Clock, User, ExternalLink, Twitter, Zap, Copy, Check } from 'lucide-react';
+import { getCurrentGroup } from '../config/groups';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
 
@@ -24,6 +25,9 @@ function ActiveCalls() {
   const [refreshingTokens, setRefreshingTokens] = useState(new Set());
   const [refreshMessage, setRefreshMessage] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [copiedTokens, setCopiedTokens] = useState(new Set());
+  
+  const currentGroup = getCurrentGroup();
 
   useEffect(() => {
     fetchActiveCalls();
@@ -135,6 +139,22 @@ function ActiveCalls() {
     return 'Just now';
   };
 
+  const copyContractAddress = async (contractAddress) => {
+    try {
+      await navigator.clipboard.writeText(contractAddress);
+      setCopiedTokens(prev => new Set([...prev, contractAddress]));
+      setTimeout(() => {
+        setCopiedTokens(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(contractAddress);
+          return newSet;
+        });
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy contract address:', err);
+    }
+  };
+
   const formatNumber = (num) => {
     if (!num || num === 0) return '0';
     
@@ -172,7 +192,14 @@ function ActiveCalls() {
                   <h1 className="text-4xl font-bold text-white tracking-tight">
                     Active Calls
                   </h1>
-                  <p className="text-blue-300/80 text-lg">Live Solana token performance tracking</p>
+                  <div className="flex items-center space-x-3">
+                    <p className="text-blue-300/80 text-lg">Live Solana token performance tracking</p>
+                    <span className="text-blue-400 text-lg">•</span>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 bg-${currentGroup.color}-400 rounded-full`}></div>
+                      <span className={`text-${currentGroup.color}-400 text-lg font-medium`}>{currentGroup.displayName}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -255,14 +282,41 @@ function ActiveCalls() {
                     {/* Token */}
                     <td className="p-6">
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-400/20">
-                          <span className="text-white font-bold text-lg">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-400/20 overflow-hidden">
+                          {call.token?.image ? (
+                            <img 
+                              src={call.token.image} 
+                              alt={call.token?.symbol || 'Token'} 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <span 
+                            className="text-white font-bold text-lg"
+                            style={{ display: call.token?.image ? 'none' : 'flex' }}
+                          >
                             {call.token?.symbol?.charAt(0) || '?'}
                           </span>
                         </div>
-                        <div>
-                          <div className="text-white font-semibold text-lg">
-                            {call.token?.symbol || 'Unknown'}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <div className="text-white font-semibold text-lg">
+                              {call.token?.symbol || 'Unknown'}
+                            </div>
+                            <button
+                              onClick={() => copyContractAddress(call.contractAddress)}
+                              className="p-1 hover:bg-gray-700/50 rounded transition-colors"
+                              title="Copy contract address"
+                            >
+                              {copiedTokens.has(call.contractAddress) ? (
+                                <Check className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <Copy className="w-4 h-4 text-gray-400 hover:text-white" />
+                              )}
+                            </button>
                           </div>
                           <div className="text-gray-400 text-sm">
                             {call.token?.name || 'Unknown Token'}

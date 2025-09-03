@@ -13,7 +13,9 @@ import {
   Filter,
   Trophy,
   Medal,
-  Award
+  Award,
+  Copy,
+  Check
 } from 'lucide-react';
 
 import Card from '../components/ui/Card';
@@ -21,6 +23,7 @@ import KPI from '../components/ui/KPI';
 import Segmented from '../components/ui/Segmented';
 import Badge from '../components/ui/Badge';
 import Table from '../components/ui/Table';
+import { getCurrentGroup } from '../config/groups';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
 
@@ -68,6 +71,9 @@ function Dashboard() {
   const [timeRange, setTimeRange] = useState('24h');
   const [searchTerm, setSearchTerm] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [copiedTokens, setCopiedTokens] = useState(new Set());
+  
+  const currentGroup = getCurrentGroup();
 
   const timeRangeOptions = [
     { value: '24h', label: '24h' },
@@ -89,6 +95,22 @@ function Dashboard() {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const copyContractAddress = async (contractAddress) => {
+    try {
+      await navigator.clipboard.writeText(contractAddress);
+      setCopiedTokens(prev => new Set([...prev, contractAddress]));
+      setTimeout(() => {
+        setCopiedTokens(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(contractAddress);
+          return newSet;
+        });
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy contract address:', err);
     }
   };
 
@@ -214,7 +236,14 @@ function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-400 text-sm">Live Solana token performance tracking</p>
+          <div className="flex items-center space-x-2">
+            <p className="text-gray-400 text-sm">Live Solana token performance tracking</p>
+            <span className="text-blue-400 text-sm">•</span>
+            <div className="flex items-center space-x-1">
+              <div className={`w-2 h-2 bg-${currentGroup.color}-400 rounded-full`}></div>
+              <span className={`text-${currentGroup.color}-400 text-sm font-medium`}>{currentGroup.displayName}</span>
+            </div>
+          </div>
         </div>
         
         <div className="flex items-center space-x-3">
@@ -312,14 +341,41 @@ function Dashboard() {
                         {/* Token */}
                         <Table.Cell>
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-400/20">
-                              <span className="text-white font-bold text-sm">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-400/20 overflow-hidden">
+                              {call.token?.image ? (
+                                <img 
+                                  src={call.token.image} 
+                                  alt={call.token?.symbol || 'Token'} 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                  }}
+                                />
+                              ) : null}
+                              <span 
+                                className="text-white font-bold text-sm"
+                                style={{ display: call.token?.image ? 'none' : 'flex' }}
+                              >
                                 {call.token?.symbol?.charAt(0) || '?'}
                               </span>
                             </div>
-                            <div>
-                              <div className="text-white font-medium text-sm">
-                                {call.token?.symbol || 'Unknown'}
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-1">
+                                <div className="text-white font-medium text-sm">
+                                  {call.token?.symbol || 'Unknown'}
+                                </div>
+                                <button
+                                  onClick={() => copyContractAddress(call.contractAddress)}
+                                  className="p-0.5 hover:bg-gray-700/50 rounded transition-colors"
+                                  title="Copy contract address"
+                                >
+                                  {copiedTokens.has(call.contractAddress) ? (
+                                    <Check className="w-3 h-3 text-green-400" />
+                                  ) : (
+                                    <Copy className="w-3 h-3 text-gray-400 hover:text-white" />
+                                  )}
+                                </button>
                               </div>
                               <div className="text-gray-400 text-xs">
                                 {call.token?.name || 'Unknown Token'}
