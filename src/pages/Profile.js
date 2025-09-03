@@ -145,8 +145,14 @@ const Profile = () => {
         // For now, we'll need to implement a lookup by username
         // This is a simplified approach - in a real app you'd have a proper user lookup
         console.log(`🔍 Fetching profile for username: ${username}`);
+        console.log('❌ Username lookup not implemented yet - showing own profile instead');
         // TODO: Implement username to Twitter ID lookup
-        return;
+        // For now, fall back to own profile
+        targetTwitterId = getTwitterId();
+        if (!targetTwitterId) {
+          console.log('❌ No Twitter ID found for fallback');
+          return;
+        }
       } else {
         // Viewing own profile
         targetTwitterId = getTwitterId();
@@ -670,8 +676,8 @@ const Profile = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={`text-sm font-bold ${(call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatPnLDisplay(call.performance?.pnlPercent || 0)}
+                  <div className={`text-sm font-bold ${(call.pnlPercent || call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {formatPnLDisplay(call.pnlPercent || call.performance?.pnlPercent || 0)}
                   </div>
                 </div>
               </div>
@@ -707,17 +713,17 @@ const Profile = () => {
                 
                 <div className="text-right">
                   <div className="flex items-center space-x-1">
-                    {(call.performance?.pnlPercent || 0) >= 0 ? (
+                    {(call.pnlPercent || call.performance?.pnlPercent || 0) >= 0 ? (
                       <TrendingUp className="w-3 h-3 text-green-400" />
                     ) : (
                       <TrendingDown className="w-3 h-3 text-red-400" />
                     )}
-                    <span className={`text-sm font-bold ${(call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {formatPnLDisplay(call.performance?.pnlPercent || 0)}
+                    <span className={`text-sm font-bold ${(call.pnlPercent || call.performance?.pnlPercent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatPnLDisplay(call.pnlPercent || call.performance?.pnlPercent || 0)}
                     </span>
                   </div>
                   <div className="text-gray-400 text-xs">
-                    Score: {(call.performance?.score || 0).toFixed(1)}
+                    Score: {(call.score || call.performance?.score || 0).toFixed(1)}
                   </div>
                 </div>
               </div>

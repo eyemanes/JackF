@@ -304,6 +304,7 @@ function ActiveCalls() {
                             <Link 
                               to={`/profile/${twitterInfo.twitterUsername}`}
                               className="block group hover:bg-blue-500/10 rounded-lg p-1 -m-1 transition-colors"
+                              onClick={() => console.log('🔗 Navigating to profile:', twitterInfo.twitterUsername)}
                             >
                               <div className="flex items-center space-x-2">
                                 <span className="text-blue-300 font-medium truncate group-hover:text-blue-200">
