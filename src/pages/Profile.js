@@ -187,7 +187,7 @@ const Profile = () => {
         // 🔍 DEBUG: Check if linking is working
         if (profileData.success) {
           console.log('🔍 Backend linking check:', {
-            twitterId,
+            twitterId: targetTwitterId,
             isLinked: profileData.data?.isLinked,
             totalCalls: profileData.data?.totalCalls,
             linkedData: profileData.data?.linkedData
