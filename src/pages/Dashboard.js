@@ -103,9 +103,19 @@ function Dashboard() {
       const data = await response.json();
       
       if (data.success) {
-        const sortedCalls = (data.data || []).sort((a, b) => 
-          new Date(b.createdAt) - new Date(a.createdAt)
-        );
+        // Sort by PnL performance (highest first), then by creation time (newest first)
+        const sortedCalls = (data.data || []).sort((a, b) => {
+          const pnlA = a.performance?.pnlPercent || 0;
+          const pnlB = b.performance?.pnlPercent || 0;
+          
+          // First sort by PnL (descending)
+          if (pnlA !== pnlB) {
+            return pnlB - pnlA;
+          }
+          
+          // If PnL is the same, sort by creation time (newest first)
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
         setCalls(sortedCalls);
         setLastUpdated(new Date());
       } else {

@@ -21,7 +21,8 @@ import {
   Star,
   Activity,
   Upload,
-  X
+  X,
+  RefreshCw
 } from 'lucide-react';
 
 import Card from '../components/ui/Card';
@@ -44,6 +45,7 @@ const Profile = () => {
   const [isCheckingLink, setIsCheckingLink] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [timeRange, setTimeRange] = useState('24h');
+  const [refreshing, setRefreshing] = useState(false);
   const fileInputRef = useRef(null);
 
   const timeRangeOptions = [
@@ -234,6 +236,17 @@ const Profile = () => {
       console.error('Error fetching user data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchUserData();
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -479,6 +492,23 @@ const Profile = () => {
           <p className="text-gray-400 text-sm">
             {username ? `${username}'s trading statistics and call history` : 'Your trading statistics and call history'}
           </p>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          <Segmented 
+            options={timeRangeOptions}
+            value={timeRange}
+            onChange={setTimeRange}
+            size="sm"
+          />
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center space-x-2 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-all duration-200 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="text-sm">Refresh</span>
+          </button>
         </div>
       </div>
 
