@@ -235,7 +235,7 @@ function Dashboard() {
       call.token?.symbol?.toLowerCase().includes(searchLower) ||
       call.token?.name?.toLowerCase().includes(searchLower) ||
       call.user?.displayName?.toLowerCase().includes(searchLower) ||
-      call.user?.twitterInfo?.twitterUsername?.toLowerCase().includes(searchLower)
+      call.user?.username?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -429,10 +429,10 @@ function Dashboard() {
                         <Table.Cell>
                           <div className="flex items-center space-x-2">
                             <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-400/30 flex-shrink-0">
-                              {isLinked && call.user?.twitterProfilePic ? (
+                              {isLinked && twitterInfo?.twitterProfilePic ? (
                                 <img
-                                  src={call.user.twitterProfilePic}
-                                  alt={`@${call.user.twitterUsername}`}
+                                  src={twitterInfo.twitterProfilePic}
+                                  alt={`@${twitterInfo.twitterUsername}`}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
@@ -465,7 +465,7 @@ function Dashboard() {
                         {/* Entry MCap */}
                         <Table.Cell align="right">
                           <div className="text-white font-medium text-sm">
-                            ${formatNumber(call.prices?.entryMarketCap || 0)}
+                            ${formatNumber(call.entryMarketCap || 0)}
                           </div>
                         </Table.Cell>
 
@@ -489,7 +489,7 @@ function Dashboard() {
                         {/* Current MCap */}
                         <Table.Cell align="right">
                           <div className="text-white font-medium text-sm">
-                            ${formatNumber(call.prices?.currentMarketCap || 0)}
+                            ${formatNumber(call.currentMarketCap || 0)}
                           </div>
                         </Table.Cell>
 
