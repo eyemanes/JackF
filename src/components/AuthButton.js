@@ -174,13 +174,31 @@ const AuthButton = () => {
         console.log('No profile image URL found in user data');
         // Try to construct Twitter profile image URL from username
         if (user?.twitter?.username) {
-          const constructedUrl = `https://unavatar.io/twitter/${user.twitter.username}`;
-          console.log('Trying constructed URL:', constructedUrl);
-          setProfilePicture(constructedUrl);
+          const username = user.twitter.username;
+          
+          // Method 1: Try unavatar.io
+          const unavatarUrl = `https://unavatar.io/twitter/${username}`;
+          console.log('Trying unavatar.io URL:', unavatarUrl);
+          
+          // Test if the image loads
+          const img = new Image();
+          img.onload = () => {
+            console.log('✅ unavatar.io image loaded successfully');
+            setProfilePicture(unavatarUrl);
+          };
+          img.onerror = () => {
+            console.log('❌ unavatar.io failed, trying alternative');
+            // Method 2: Try a different service
+            const alternativeUrl = `https://avatars.dicebear.com/api/avataaars/${username}.svg`;
+            console.log('Trying alternative URL:', alternativeUrl);
+            setProfilePicture(alternativeUrl);
+          };
+          img.src = unavatarUrl;
         }
       }
     } catch (error) {
       console.error('Error fetching profile picture:', error);
+      setProfilePicture(null);
     }
   };
 
@@ -285,11 +303,15 @@ const AuthButton = () => {
             <img
               src={profilePicture}
               alt="Profile"
-              className="w-6 h-6 rounded-full"
+              className="w-6 h-6 rounded-full object-cover"
+              onError={(e) => {
+                console.log('Profile image failed to load, using fallback');
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
             />
-          ) : (
-            <User className="w-5 h-5 text-blue-400" />
-          )}
+          ) : null}
+          <User className={`w-5 h-5 text-blue-400 ${profilePicture ? 'hidden' : ''}`} />
           
           <div className="text-sm">
             <div className="text-white font-medium">
@@ -302,7 +324,7 @@ const AuthButton = () => {
 
         {/* Profile Dropdown Menu */}
         {showProfileMenu && (
-          <div className="absolute right-0 bottom-full mb-2 w-64 bg-gray-800/95 backdrop-blur-sm border border-gray-600/30 rounded-lg shadow-xl z-[99999] profile-dropdown">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800/95 backdrop-blur-sm border border-gray-600/30 rounded-lg shadow-xl z-[99999] profile-dropdown">
             <div className="p-4">
               {/* User Info */}
               <div className="flex items-center justify-between mb-4">
@@ -311,13 +333,16 @@ const AuthButton = () => {
                     <img
                       src={profilePicture}
                       alt="Profile"
-                      className="w-12 h-12 rounded-full"
+                      className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
                     />
-                  ) : (
-                    <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center">
-                      <User className="w-6 h-6 text-blue-400" />
-                    </div>
-                  )}
+                  ) : null}
+                  <div className={`w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center ${profilePicture ? 'hidden' : ''}`}>
+                    <User className="w-6 h-6 text-blue-400" />
+                  </div>
                   <div>
                     <div className="text-white font-medium">
                       {user?.twitter?.name || 'User'}
