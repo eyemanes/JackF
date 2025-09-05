@@ -49,3 +49,4 @@ export const getActiveGroups = () => {
 export const getLockedGroups = () => {
   return Object.values(GROUPS).filter(group => group.status === 'locked');
 };
+

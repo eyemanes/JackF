@@ -15,7 +15,9 @@ import {
   Medal,
   Award,
   Copy,
-  Check
+  Check,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 
 import Card from '../components/ui/Card';
@@ -24,6 +26,7 @@ import Segmented from '../components/ui/Segmented';
 import Badge from '../components/ui/Badge';
 import Table from '../components/ui/Table';
 import { getCurrentGroup, getLockedGroups } from '../config/groups';
+import { useRealtimeCalls } from '../hooks/useSocket';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel.app/api';
 
@@ -64,6 +67,7 @@ const formatNumber = (num) => {
 };
 
 function Dashboard() {
+  const { calls: realtimeCalls, loading: realtimeLoading, isConnected } = useRealtimeCalls();
   const [calls, setCalls] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,8 +87,22 @@ function Dashboard() {
     { value: '30d', label: '30d' }
   ];
 
+  // Use real-time data when available, fallback to API
   useEffect(() => {
-    fetchData();
+    if (realtimeCalls.length > 0) {
+      console.log('📊 Using real-time data:', realtimeCalls.length, 'calls');
+      setCalls(realtimeCalls);
+      setLoading(false);
+      setLastUpdated(new Date());
+    } else if (!realtimeLoading) {
+      // Fallback to API if no real-time data
+      console.log('📊 No real-time data, fetching from API');
+      fetchData();
+    }
+  }, [realtimeCalls, realtimeLoading]);
+
+  useEffect(() => {
+    fetchLeaderboard();
   }, []);
 
   const fetchData = async () => {
@@ -248,6 +266,21 @@ function Dashboard() {
         </div>
         
         <div className="flex items-center space-x-3">
+          {/* Connection Status */}
+          <div className="flex items-center space-x-2 px-3 py-2 bg-gray-800/50 rounded-lg">
+            {isConnected ? (
+              <>
+                <Wifi className="w-4 h-4 text-green-400" />
+                <span className="text-green-400 text-sm">Live</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-4 h-4 text-red-400" />
+                <span className="text-red-400 text-sm">Offline</span>
+              </>
+            )}
+          </div>
+          
           <Segmented 
             options={timeRangeOptions}
             value={timeRange}
