@@ -162,7 +162,8 @@ const AuthButton = () => {
       console.log('Twitter user data:', user?.twitter);
       
       // Try different possible profile image URL fields
-      const profileImageUrl = user?.twitter?.profileImageUrl || 
+      const profileImageUrl = user?.twitter?.profilePictureUrl || 
+                             user?.twitter?.profileImageUrl || 
                              user?.twitter?.profile_image_url ||
                              user?.twitter?.profileImage ||
                              user?.twitter?.avatar_url;

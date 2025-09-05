@@ -42,8 +42,16 @@ function App() {
       } else {
         console.error('Invalid stats response:', result);
         setStats({
-        status: 'OK',
-        message: 'Solana Tracker API is running',
+          status: 'OK',
+          message: 'Solana Tracker API is running',
+          stats: { totalCalls: 0, totalUsers: 0 }
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setStats({
+        status: 'Error',
+        message: 'Failed to fetch stats',
         stats: { totalCalls: 0, totalUsers: 0 }
       });
     } finally {
