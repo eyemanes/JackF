@@ -1,38 +1,18 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:3001';
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'https://jack-alpha.vercel.app';
 
 export const useSocket = () => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const newSocket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
-      timeout: 20000,
-    });
-
-    newSocket.on('connect', () => {
-      console.log('🔌 Connected to WebSocket server');
-      setIsConnected(true);
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('🔌 Disconnected from WebSocket server');
-      setIsConnected(false);
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('🔌 WebSocket connection error:', error);
-      setIsConnected(false);
-    });
-
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.close();
-    };
+    // Disable WebSocket for Vercel deployment
+    // Vercel doesn't support persistent WebSocket connections
+    console.log('🔌 WebSocket disabled for Vercel deployment');
+    setIsConnected(false);
+    setSocket(null);
   }, []);
 
   return { socket, isConnected };
@@ -44,20 +24,36 @@ export const useRealtimeCalls = () => {
   const { socket, isConnected } = useSocket();
 
   useEffect(() => {
-    if (!socket) return;
-
-    const handleCallsUpdate = (newCalls) => {
-      console.log('📊 Received real-time calls update:', newCalls.length, 'calls');
-      setCalls(newCalls);
-      setLoading(false);
+    // Since WebSocket is disabled for Vercel, fetch data via API
+    const fetchCalls = async () => {
+      try {
+        const response = await fetch('https://jack-alpha.vercel.app/api/calls');
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('📊 Fetched calls via API:', result.data.length, 'calls');
+          setCalls(result.data);
+        } else {
+          console.error('❌ Failed to fetch calls:', result.error);
+          setCalls([]);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching calls:', error);
+        setCalls([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    socket.on('calls_updated', handleCallsUpdate);
-
+    fetchCalls();
+    
+    // Set up polling to refresh data every 30 seconds
+    const interval = setInterval(fetchCalls, 30000);
+    
     return () => {
-      socket.off('calls_updated', handleCallsUpdate);
+      clearInterval(interval);
     };
-  }, [socket]);
+  }, []);
 
   return { calls, loading, isConnected };
 };
