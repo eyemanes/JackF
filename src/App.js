@@ -25,23 +25,23 @@ function App() {
 
   const fetchOverviewStats = async () => {
     try {
-      console.log('Fetching stats from:', `${API_BASE_URL}/health`);
-      const response = await fetch(`${API_BASE_URL}/health`);
+      console.log('Fetching stats from:', `${API_BASE_URL}/dashboard/stats`);
+      const response = await fetch(`${API_BASE_URL}/dashboard/stats`);
       console.log('Stats response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
-      console.log('Stats data received:', data);
-      console.log('Database type:', data.database);
-      console.log('Firebase stats:', data.stats);
-      setStats(data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      // Set fallback stats to prevent UI issues
-      setStats({
+      const result = await response.json();
+      console.log('Stats data received:', result);
+      
+      if (result.success && result.data) {
+        console.log('Dashboard stats:', result.data);
+        setStats(result.data);
+      } else {
+        console.error('Invalid stats response:', result);
+        setStats({
         status: 'OK',
         message: 'Solana Tracker API is running',
         stats: { totalCalls: 0, totalUsers: 0 }

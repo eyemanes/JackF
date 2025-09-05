@@ -147,8 +147,8 @@ function Dashboard() {
       if (data.success) {
         // Sort by PnL performance (highest first), then by creation time (newest first)
         const sortedCalls = (data.data || []).sort((a, b) => {
-          const pnlA = a.performance?.pnlPercent || 0;
-          const pnlB = b.performance?.pnlPercent || 0;
+          const pnlA = a.pnlPercent || 0;
+          const pnlB = b.pnlPercent || 0;
           
           // First sort by PnL (descending)
           if (pnlA !== pnlB) {
@@ -221,10 +221,10 @@ function Dashboard() {
   // Calculate KPIs
   const liveCalls = calls.length;
   const avgPnL = calls.length > 0 
-    ? calls.reduce((sum, call) => sum + (call.performance?.pnlPercent || 0), 0) / calls.length 
+    ? calls.reduce((sum, call) => sum + (call.pnlPercent || 0), 0) / calls.length 
     : 0;
   const bestCall = calls.length > 0 
-    ? Math.max(...calls.map(call => call.performance?.pnlPercent || 0)) 
+    ? Math.max(...calls.map(call => call.pnlPercent || 0)) 
     : 0;
 
   // Filter calls based on search
@@ -374,7 +374,7 @@ function Dashboard() {
                   {filteredCalls.map((call, index) => {
                     const twitterInfo = call.user?.twitterInfo;
                     const isLinked = call.user?.isLinked;
-                    const pnlPercent = call.performance?.pnlPercent || 0;
+                    const pnlPercent = call.pnlPercent || 0;
                     const isPositive = pnlPercent >= 0;
                     
                     return (
@@ -482,7 +482,7 @@ function Dashboard() {
                         {/* Score */}
                         <Table.Cell align="right">
                           <div className="text-blue-300 font-bold text-sm">
-                            {(call.performance?.score || 0).toFixed(1)}
+                            {(call.score || 0).toFixed(1)}
                           </div>
                         </Table.Cell>
 
