@@ -32,12 +32,13 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://jack-alpha.vercel
 
 // Helper function to format PnL display
 const formatPnLDisplay = (pnlPercent) => {
-  const multiplier = (pnlPercent / 100) + 1;
+  const pnl = pnlPercent || 0;
+  const multiplier = (pnl / 100) + 1;
   
   if (multiplier < 1) {
-    return `${pnlPercent.toFixed(1)}%`;
+    return `${pnl.toFixed(1)}%`;
   } else if (multiplier < 2) {
-    return `+${pnlPercent.toFixed(1)}%`;
+    return `+${pnl.toFixed(1)}%`;
   } else {
     return `${multiplier.toFixed(1)}x`;
   }
@@ -607,12 +608,12 @@ function Dashboard() {
                       </span>
                     </div>
                     <div className="text-gray-400 text-xs">
-                      {user.totalCalls} calls • {user.winRate.toFixed(1)}% wins
+                      {user.totalCalls || 0} calls • {(user.winRate || 0).toFixed(1)}% wins
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-blue-400 text-sm font-bold">
-                      {user.totalScore.toFixed(1)}
+                      {(user.totalScore || 0).toFixed(1)}
                     </div>
                     <div className="text-gray-400 text-xs">pts</div>
                   </div>
